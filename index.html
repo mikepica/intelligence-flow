@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Intelligence Gap | AstraZeneca Intelligence Flow</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <style>
+    /* Scroll Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Staggered reveal delays */
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+    .reveal-delay-6 { transition-delay: 0.6s; }
+
+    /* Hero animated grid */
+    .hero-grid {
+      background-image:
+        linear-gradient(rgba(139, 92, 246, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139, 92, 246, 0.08) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridShift 20s linear infinite;
+    }
+    @keyframes gridShift {
+      0% { background-position: 0 0; }
+      100% { background-position: 60px 60px; }
+    }
+
+    /* Silo drift animations */
+    @keyframes driftLeft {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-6px, 2px); }
+    }
+    @keyframes driftRight {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(6px, -2px); }
+    }
+    @keyframes driftUp {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(2px, -6px); }
+    }
+    @keyframes driftDown {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-2px, 6px); }
+    }
+    @keyframes driftDiag1 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(-5px, -4px); }
+    }
+    @keyframes driftDiag2 {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(5px, 4px); }
+    }
+
+    .silo-drift-1 { animation: driftLeft 6s ease-in-out infinite; }
+    .silo-drift-2 { animation: driftRight 7s ease-in-out infinite; }
+    .silo-drift-3 { animation: driftUp 5.5s ease-in-out infinite; }
+    .silo-drift-4 { animation: driftDown 6.5s ease-in-out infinite; }
+    .silo-drift-5 { animation: driftDiag1 7.5s ease-in-out infinite; }
+    .silo-drift-6 { animation: driftDiag2 5s ease-in-out infinite; }
+
+    /* Flickering connection lines */
+    @keyframes flicker {
+      0%, 100% { opacity: 0.3; }
+      20% { opacity: 0.6; }
+      40% { opacity: 0.1; }
+      60% { opacity: 0.5; }
+      80% { opacity: 0.15; }
+    }
+    .connection-line {
+      animation: flicker 3s ease-in-out infinite;
+    }
+    .connection-line-2 {
+      animation: flicker 4s ease-in-out infinite 0.5s;
+    }
+    .connection-line-3 {
+      animation: flicker 3.5s ease-in-out infinite 1s;
+    }
+    .connection-line-4 {
+      animation: flicker 4.5s ease-in-out infinite 1.5s;
+    }
+    .connection-line-5 {
+      animation: flicker 3.2s ease-in-out infinite 0.7s;
+    }
+
+    /* Data packet fade-out */
+    @keyframes packetFade1 {
+      0% { opacity: 0.8; transform: translate(0, 0) scale(1); }
+      70% { opacity: 0.3; transform: translate(30px, -10px) scale(0.6); }
+      100% { opacity: 0; transform: translate(40px, -15px) scale(0.3); }
+    }
+    @keyframes packetFade2 {
+      0% { opacity: 0.8; transform: translate(0, 0) scale(1); }
+      70% { opacity: 0.3; transform: translate(-25px, 15px) scale(0.6); }
+      100% { opacity: 0; transform: translate(-35px, 20px) scale(0.3); }
+    }
+    @keyframes packetFade3 {
+      0% { opacity: 0.8; transform: translate(0, 0) scale(1); }
+      70% { opacity: 0.3; transform: translate(10px, 25px) scale(0.6); }
+      100% { opacity: 0; transform: translate(15px, 35px) scale(0.3); }
+    }
+    @keyframes packetFade4 {
+      0% { opacity: 0.8; transform: translate(0, 0) scale(1); }
+      70% { opacity: 0.3; transform: translate(-15px, -20px) scale(0.6); }
+      100% { opacity: 0; transform: translate(-20px, -30px) scale(0.3); }
+    }
+    .data-packet-1 { animation: packetFade1 3s ease-out infinite; }
+    .data-packet-2 { animation: packetFade2 3.5s ease-out infinite 0.8s; }
+    .data-packet-3 { animation: packetFade3 4s ease-out infinite 1.6s; }
+    .data-packet-4 { animation: packetFade4 3.2s ease-out infinite 2.4s; }
+
+    /* What-if fade-in */
+    .whatif-line {
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .whatif-line.revealed {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* Subtle pulse for CTA */
+    @keyframes subtlePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.3); }
+      50% { box-shadow: 0 0 0 10px rgba(251, 191, 36, 0); }
+    }
+    .cta-pulse {
+      animation: subtlePulse 2.5s ease-in-out infinite;
+    }
+
+    /* Card hover lift */
+    .card-hover {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Stat card accent bar animation */
+    @keyframes accentGrow {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+    .accent-bar-animate {
+      animation: accentGrow 1.2s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="font-sans bg-white text-slate-900 pt-16">
+
+  <!-- ============================================ -->
+  <!-- NAVIGATION (Sticky Top)                      -->
+  <!-- ============================================ -->
+  <nav class="bg-white/95 backdrop-blur-sm shadow-sm fixed top-0 w-full z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+          <span class="text-purple-600 font-bold text-xl">AZ</span>
+          <span class="text-slate-600 text-sm font-medium">Intelligence Flow</span>
+        </div>
+        <!-- Desktop Nav Links -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="index.html" class="text-purple-700 font-semibold text-sm border-b-2 border-purple-700 pb-0.5">The Gap</a>
+          <a href="scorecard.html" class="text-slate-500 hover:text-purple-600 transition-colors text-sm font-medium">Living Scorecard</a>
+          <a href="flow.html" class="text-slate-500 hover:text-purple-600 transition-colors text-sm font-medium">Intelligence Flow</a>
+          <a href="agents.html" class="text-slate-500 hover:text-purple-600 transition-colors text-sm font-medium">Your Agent</a>
+          <a href="roadmap.html" class="text-slate-500 hover:text-purple-600 transition-colors text-sm font-medium">Roadmap</a>
+        </div>
+        <!-- Mobile menu button -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Mobile Nav -->
+      <div id="mobile-menu" class="md:hidden hidden pb-4 space-y-2">
+        <a href="index.html" class="block text-purple-700 font-semibold text-sm px-3 py-2 rounded-lg bg-purple-50">The Gap</a>
+        <a href="scorecard.html" class="block text-slate-500 hover:text-purple-600 text-sm px-3 py-2">Living Scorecard</a>
+        <a href="flow.html" class="block text-slate-500 hover:text-purple-600 text-sm px-3 py-2">Intelligence Flow</a>
+        <a href="agents.html" class="block text-slate-500 hover:text-purple-600 text-sm px-3 py-2">Your Agent</a>
+        <a href="roadmap.html" class="block text-slate-500 hover:text-purple-600 text-sm px-3 py-2">Roadmap</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- ============================================ -->
+    <!-- HERO SECTION                                 -->
+    <!-- ============================================ -->
+    <section class="relative min-h-[85vh] flex items-center justify-center bg-gradient-to-br from-purple-950 via-purple-800 to-indigo-900 overflow-hidden">
+      <!-- Animated grid overlay -->
+      <div class="absolute inset-0 hero-grid"></div>
+      <!-- Gradient overlay for depth -->
+      <div class="absolute inset-0 bg-gradient-to-t from-purple-950/50 via-transparent to-purple-900/30"></div>
+
+      <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <!-- Eyebrow -->
+        <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-1.5 mb-8 border border-white/10">
+          <span class="w-2 h-2 bg-amber-400 rounded-full"></span>
+          <span class="text-purple-200 text-sm font-medium">AstraZeneca Intelligence Flow Showcase</span>
+        </div>
+        <!-- Title -->
+        <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
+          The Intelligence
+          <span class="block bg-gradient-to-r from-amber-300 to-yellow-400 bg-clip-text text-transparent">Gap</span>
+        </h1>
+        <!-- Subtitle -->
+        <p class="text-lg md:text-xl text-purple-200 max-w-2xl mx-auto leading-relaxed mb-10">
+          How siloed information is costing AstraZeneca speed, alignment, and strategic clarity
+        </p>
+        <!-- Scroll indicator -->
+        <div class="mt-8 animate-bounce">
+          <svg class="w-6 h-6 mx-auto text-purple-300/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 1: THE CURRENT REALITY               -->
+    <!-- ============================================ -->
+    <section class="py-20 md:py-28 bg-slate-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-16 reveal">
+          <span class="inline-block text-purple-600 text-sm font-semibold tracking-widest uppercase mb-3">The Status Quo</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">The Current Reality</h2>
+          <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
+            Across the enterprise, the way we track and report on strategic goals hasn't kept pace with the speed of the business.
+          </p>
+        </div>
+
+        <!-- Pain Point Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Card 1 -->
+          <div class="reveal reveal-delay-1 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 card-hover">
+            <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M3 14h18M3 18h18M3 6h18"/>
+                <rect x="2" y="3" width="20" height="18" rx="2" stroke-width="1.5" fill="none"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">Spreadsheet Goals</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Annual goals live in static spreadsheets, disconnected from the daily work that drives them forward.</p>
+          </div>
+          <!-- Card 2 -->
+          <div class="reveal reveal-delay-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 card-hover">
+            <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6M9 17h4M13 3v5a2 2 0 002 2h4"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">Slide-Based Reporting</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Progress is compiled into PowerPoint decks for periodic reviews -- a snapshot frozen in time the moment it's created.</p>
+          </div>
+          <!-- Card 3 -->
+          <div class="reveal reveal-delay-3 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 card-hover">
+            <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">Stale Data</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">By the time leadership sees the data, it's already 2-4 weeks old. Decisions are made on yesterday's reality.</p>
+          </div>
+          <!-- Card 4 -->
+          <div class="reveal reveal-delay-4 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 card-hover">
+            <div class="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">Manual Fire Drills</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Every reporting cycle triggers a scramble -- pulling data, formatting slides, chasing approvals -- consuming weeks of productivity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 2: THE SILO EFFECT (KEY VISUAL)      -->
+    <!-- ============================================ -->
+    <section class="py-20 md:py-28 bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-900 relative overflow-hidden">
+      <!-- Subtle texture -->
+      <div class="absolute inset-0 hero-grid opacity-50"></div>
+
+      <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-16 reveal">
+          <span class="inline-block text-amber-400 text-sm font-semibold tracking-widest uppercase mb-3">The Root Cause</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">The Silo Effect</h2>
+          <p class="text-base md:text-lg text-purple-200 max-w-2xl mx-auto">
+            Information is trapped within organizational boundaries. Knowledge can't flow where it's needed most.
+          </p>
+        </div>
+
+        <!-- SVG Silo Visualization -->
+        <div class="reveal max-w-5xl mx-auto">
+          <svg viewBox="0 0 900 520" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Box gradients -->
+              <linearGradient id="boxGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:0.9"/>
+                <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:0.7"/>
+              </linearGradient>
+              <linearGradient id="boxGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:0.9"/>
+                <stop offset="100%" style="stop-color:#4338ca;stop-opacity:0.7"/>
+              </linearGradient>
+              <linearGradient id="boxGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:0.8"/>
+                <stop offset="100%" style="stop-color:#5b21b6;stop-opacity:0.6"/>
+              </linearGradient>
+              <!-- Glow filter -->
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <!-- Data packet gradient -->
+              <radialGradient id="packetGrad">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:0.9"/>
+                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0"/>
+              </radialGradient>
+            </defs>
+
+            <!-- Broken connection lines (dashed, flickering) -->
+            <!-- Enterprise Strategy to Business Units -->
+            <line x1="230" y1="115" x2="380" y2="55" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 8" class="connection-line" opacity="0.3"/>
+            <!-- Enterprise Strategy to Functions -->
+            <line x1="230" y1="135" x2="380" y2="215" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 8" class="connection-line-2" opacity="0.3"/>
+            <!-- Business Units to Departments -->
+            <line x1="570" y1="55" x2="680" y2="135" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 8" class="connection-line-3" opacity="0.3"/>
+            <!-- Functions to Departments -->
+            <line x1="570" y1="215" x2="680" y2="155" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 8" class="connection-line-4" opacity="0.3"/>
+            <!-- Departments to Teams -->
+            <line x1="760" y1="175" x2="690" y2="330" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 8" class="connection-line-5" opacity="0.3"/>
+            <!-- Teams to Individuals -->
+            <line x1="550" y1="370" x2="350" y2="385" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="6 8" class="connection-line" opacity="0.3"/>
+            <!-- Enterprise Strategy to Teams -->
+            <line x1="170" y1="165" x2="590" y2="330" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4 12" class="connection-line-2" opacity="0.15"/>
+            <!-- Business Units to Individuals -->
+            <line x1="475" y1="80" x2="250" y2="370" stroke="#a78bfa" stroke-width="1" stroke-dasharray="4 12" class="connection-line-4" opacity="0.15"/>
+
+            <!-- Data packets that fade out (information loss) -->
+            <!-- Packet 1: between Enterprise Strategy and Business Units -->
+            <circle cx="310" cy="85" r="4" fill="url(#packetGrad)" class="data-packet-1"/>
+            <circle cx="305" cy="90" r="2" fill="#fbbf24" opacity="0.4" class="data-packet-1"/>
+
+            <!-- Packet 2: between Business Units and Departments -->
+            <circle cx="625" cy="95" r="4" fill="url(#packetGrad)" class="data-packet-2"/>
+            <circle cx="620" cy="100" r="2" fill="#fbbf24" opacity="0.4" class="data-packet-2"/>
+
+            <!-- Packet 3: between Functions and Departments -->
+            <circle cx="625" cy="185" r="4" fill="url(#packetGrad)" class="data-packet-3"/>
+            <circle cx="630" cy="190" r="2" fill="#fbbf24" opacity="0.4" class="data-packet-3"/>
+
+            <!-- Packet 4: between Teams and Individuals -->
+            <circle cx="440" cy="375" r="4" fill="url(#packetGrad)" class="data-packet-4"/>
+            <circle cx="445" cy="370" r="2" fill="#fbbf24" opacity="0.4" class="data-packet-4"/>
+
+            <!-- "Information Lost" labels near packets -->
+            <text x="290" y="72" font-size="9" fill="#f87171" font-family="Inter, sans-serif" opacity="0.6" class="connection-line">data lost</text>
+            <text x="605" y="82" font-size="9" fill="#f87171" font-family="Inter, sans-serif" opacity="0.6" class="connection-line-3">signal lost</text>
+            <text x="610" y="208" font-size="9" fill="#f87171" font-family="Inter, sans-serif" opacity="0.6" class="connection-line-5">context lost</text>
+            <text x="420" y="398" font-size="9" fill="#f87171" font-family="Inter, sans-serif" opacity="0.6" class="connection-line-2">insight lost</text>
+
+            <!-- ===== SILO BOXES ===== -->
+
+            <!-- Box 1: Enterprise Strategy (top-left) -->
+            <g class="silo-drift-1">
+              <rect x="60" y="85" width="180" height="80" rx="12" fill="url(#boxGrad1)" stroke="#a78bfa" stroke-width="1"/>
+              <rect x="60" y="85" width="180" height="80" rx="12" fill="white" opacity="0.05"/>
+              <!-- Icon: Target -->
+              <circle cx="100" cy="125" r="14" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <circle cx="100" cy="125" r="8" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <circle cx="100" cy="125" r="3" fill="#fbbf24"/>
+              <text x="125" y="118" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Enterprise</text>
+              <text x="125" y="134" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Strategy</text>
+            </g>
+
+            <!-- Box 2: Business Units (top-center) -->
+            <g class="silo-drift-2">
+              <rect x="380" y="20" width="180" height="80" rx="12" fill="url(#boxGrad2)" stroke="#818cf8" stroke-width="1"/>
+              <rect x="380" y="20" width="180" height="80" rx="12" fill="white" opacity="0.05"/>
+              <!-- Icon: Building -->
+              <rect x="415" y="48" width="20" height="22" rx="2" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <line x1="420" y1="55" x2="420" y2="55" stroke="#e9d5ff" stroke-width="1.5"/>
+              <rect x="421" y="53" width="4" height="4" rx="0.5" fill="#e9d5ff" opacity="0.6"/>
+              <rect x="428" y="53" width="4" height="4" rx="0.5" fill="#e9d5ff" opacity="0.6"/>
+              <rect x="421" y="61" width="4" height="4" rx="0.5" fill="#e9d5ff" opacity="0.6"/>
+              <rect x="428" y="61" width="4" height="4" rx="0.5" fill="#e9d5ff" opacity="0.6"/>
+              <text x="445" y="57" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Business</text>
+              <text x="445" y="73" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Units</text>
+            </g>
+
+            <!-- Box 3: Functions (middle-center) -->
+            <g class="silo-drift-3">
+              <rect x="380" y="180" width="180" height="80" rx="12" fill="url(#boxGrad3)" stroke="#a78bfa" stroke-width="1"/>
+              <rect x="380" y="180" width="180" height="80" rx="12" fill="white" opacity="0.05"/>
+              <!-- Icon: Cog -->
+              <circle cx="420" cy="220" r="12" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <circle cx="420" cy="220" r="5" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <line x1="420" y1="205" x2="420" y2="210" stroke="#e9d5ff" stroke-width="1.5"/>
+              <line x1="420" y1="230" x2="420" y2="235" stroke="#e9d5ff" stroke-width="1.5"/>
+              <line x1="405" y1="220" x2="410" y2="220" stroke="#e9d5ff" stroke-width="1.5"/>
+              <line x1="430" y1="220" x2="435" y2="220" stroke="#e9d5ff" stroke-width="1.5"/>
+              <text x="445" y="216" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Functions</text>
+              <text x="445" y="232" font-size="10" fill="#d8b4fe" font-family="Inter, sans-serif">(HR, IT, Legal...)</text>
+            </g>
+
+            <!-- Box 4: Departments (right) -->
+            <g class="silo-drift-4">
+              <rect x="670" y="110" width="180" height="80" rx="12" fill="url(#boxGrad1)" stroke="#a78bfa" stroke-width="1"/>
+              <rect x="670" y="110" width="180" height="80" rx="12" fill="white" opacity="0.05"/>
+              <!-- Icon: Folder -->
+              <rect x="702" y="142" width="24" height="16" rx="2" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <path d="M704 142 L704 138 Q704 136 706 136 L712 136 L714 139 L724 139 Q726 139 726 141 L726 142" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <text x="738" y="147" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Departments</text>
+              <text x="738" y="163" font-size="10" fill="#d8b4fe" font-family="Inter, sans-serif">(Marketing, R&D...)</text>
+            </g>
+
+            <!-- Box 5: Teams (bottom-center-right) -->
+            <g class="silo-drift-5">
+              <rect x="550" y="320" width="180" height="80" rx="12" fill="url(#boxGrad2)" stroke="#818cf8" stroke-width="1"/>
+              <rect x="550" y="320" width="180" height="80" rx="12" fill="white" opacity="0.05"/>
+              <!-- Icon: People -->
+              <circle cx="590" cy="350" r="7" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <path d="M578 372 Q578 362 590 362 Q602 362 602 372" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <text x="615" y="357" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Teams</text>
+              <text x="615" y="373" font-size="10" fill="#d8b4fe" font-family="Inter, sans-serif">(Agile squads...)</text>
+            </g>
+
+            <!-- Box 6: Individuals (bottom-left) -->
+            <g class="silo-drift-6">
+              <rect x="150" y="350" width="180" height="80" rx="12" fill="url(#boxGrad3)" stroke="#a78bfa" stroke-width="1"/>
+              <rect x="150" y="350" width="180" height="80" rx="12" fill="white" opacity="0.05"/>
+              <!-- Icon: Person -->
+              <circle cx="190" cy="380" r="8" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <path d="M176 406 Q176 394 190 394 Q204 394 204 406" fill="none" stroke="#e9d5ff" stroke-width="1.5"/>
+              <text x="210" y="387" font-size="11" font-weight="600" fill="white" font-family="Inter, sans-serif">Individuals</text>
+              <text x="210" y="403" font-size="10" fill="#d8b4fe" font-family="Inter, sans-serif">(Experts, ICs...)</text>
+            </g>
+
+            <!-- Central "gap" label -->
+            <g opacity="0.7">
+              <rect x="345" y="125" width="130" height="40" rx="20" fill="#1e1b4b" stroke="#a78bfa" stroke-width="0.5" stroke-dasharray="3 3"/>
+              <text x="410" y="150" text-anchor="middle" font-size="12" font-weight="600" fill="#f87171" font-family="Inter, sans-serif">THE GAP</text>
+            </g>
+
+            <!-- Bottom annotation -->
+            <text x="450" y="470" text-anchor="middle" font-size="11" fill="#c4b5fd" font-family="Inter, sans-serif" opacity="0.7">
+              Information degrades as it crosses organizational boundaries
+            </text>
+            <text x="450" y="490" text-anchor="middle" font-size="11" fill="#c4b5fd" font-family="Inter, sans-serif" opacity="0.5">
+              Knowledge stays trapped. Context is lost. Alignment breaks down.
+            </text>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 3: THE COST OF DISCONNECTION         -->
+    <!-- ============================================ -->
+    <section class="py-20 md:py-28 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-16 reveal">
+          <span class="inline-block text-purple-600 text-sm font-semibold tracking-widest uppercase mb-3">The Impact</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">The Cost of Disconnection</h2>
+          <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto">
+            Organizational silos don't just slow things down -- they create compounding strategic risk.
+          </p>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Card 1: Weeks of Lag -->
+          <div class="reveal reveal-delay-1 bg-white rounded-2xl p-8 shadow-lg border border-slate-100 card-hover relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-orange-400 accent-bar-animate"></div>
+            <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6">
+              <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">Weeks of Lag</h3>
+            <p class="text-slate-500 leading-relaxed">
+              Leadership decisions are based on data that's 2-4 weeks old. In a fast-moving environment, stale data means missed opportunities and delayed course corrections.
+            </p>
+          </div>
+
+          <!-- Card 2: Invisible Expertise -->
+          <div class="reveal reveal-delay-2 bg-white rounded-2xl p-8 shadow-lg border border-slate-100 card-hover relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-yellow-400 accent-bar-animate"></div>
+            <div class="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mb-6">
+              <svg class="w-8 h-8 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                <line x1="4" y1="4" x2="20" y2="20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">Invisible Expertise</h3>
+            <p class="text-slate-500 leading-relaxed">
+              Critical knowledge is trapped inside individuals, invisible to the broader organization. When people move or leave, institutional wisdom vanishes with them.
+            </p>
+          </div>
+
+          <!-- Card 3: Strategic Drift -->
+          <div class="reveal reveal-delay-3 bg-white rounded-2xl p-8 shadow-lg border border-slate-100 card-hover relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-400 to-indigo-400 accent-bar-animate"></div>
+            <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-6">
+              <svg class="w-8 h-8 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-900 mb-2">Strategic Drift</h3>
+            <p class="text-slate-500 leading-relaxed">
+              Teams are working hard -- but without real-time alignment signals, effort diverges from shifting priorities. Hard work doesn't guarantee strategic impact.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 4: "WHAT IF..." (TRANSITION)         -->
+    <!-- ============================================ -->
+    <section class="py-20 md:py-28 bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-900 relative overflow-hidden">
+      <div class="absolute inset-0 hero-grid opacity-30"></div>
+      <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Section Header -->
+        <div class="text-center mb-14 reveal">
+          <span class="inline-block text-amber-400 text-sm font-semibold tracking-widest uppercase mb-3">A Different Future</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">What If...</h2>
+        </div>
+
+        <!-- What-if statements -->
+        <div class="space-y-8 mb-14">
+          <div class="whatif-line reveal reveal-delay-1 flex items-start space-x-4">
+            <div class="flex-shrink-0 mt-1">
+              <div class="w-8 h-8 bg-amber-400/20 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <p class="text-xl md:text-2xl text-white font-light leading-relaxed">
+              What if every level of the organization could see reality <span class="text-amber-300 font-medium">in real-time</span>?
+            </p>
+          </div>
+
+          <div class="whatif-line reveal reveal-delay-2 flex items-start space-x-4">
+            <div class="flex-shrink-0 mt-1">
+              <div class="w-8 h-8 bg-amber-400/20 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <p class="text-xl md:text-2xl text-white font-light leading-relaxed">
+              What if leadership decisions were grounded in <span class="text-amber-300 font-medium">today's data</span>, not last month's slides?
+            </p>
+          </div>
+
+          <div class="whatif-line reveal reveal-delay-3 flex items-start space-x-4">
+            <div class="flex-shrink-0 mt-1">
+              <div class="w-8 h-8 bg-amber-400/20 rounded-lg flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            </div>
+            <p class="text-xl md:text-2xl text-white font-light leading-relaxed">
+              What if your expertise could be <span class="text-amber-300 font-medium">captured, shared, and amplified</span> across the organization?
+            </p>
+          </div>
+        </div>
+
+        <!-- CTA Button -->
+        <div class="text-center reveal reveal-delay-4">
+          <a href="scorecard.html" class="cta-pulse inline-flex items-center space-x-2 bg-gradient-to-r from-amber-400 to-yellow-400 text-purple-950 font-semibold px-8 py-4 rounded-xl text-lg hover:from-amber-300 hover:to-yellow-300 transition-all duration-300 shadow-lg shadow-amber-400/20">
+            <span>See the Solution</span>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- BOTTOM NAVIGATION                            -->
+    <!-- ============================================ -->
+    <section class="py-12 bg-slate-50 border-t border-slate-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-end">
+          <a href="scorecard.html" class="group flex items-center space-x-3 text-purple-700 hover:text-purple-900 transition-colors">
+            <div class="text-right">
+              <span class="text-xs text-slate-400 uppercase tracking-wider font-medium">Next</span>
+              <span class="block text-lg font-semibold">The Living Scorecard</span>
+            </div>
+            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================ -->
+  <!-- FOOTER                                       -->
+  <!-- ============================================ -->
+  <footer class="py-8 text-center text-slate-400 text-sm border-t border-slate-200">
+    AstraZeneca Intelligence Flow &bull; Confidential
+  </footer>
+
+  <!-- ============================================ -->
+  <!-- SCRIPTS                                      -->
+  <!-- ============================================ -->
+  <script>
+    // Scroll Reveal Observer
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+      document.querySelectorAll('.whatif-line').forEach(el => observer.observe(el));
+    });
+
+    // Mobile menu toggle
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    });
+  </script>
+</body>
+</html>

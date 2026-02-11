@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Living Scorecard | AstraZeneca Intelligence Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    /* Scroll Reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    }
+    .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Goal Hierarchy Connection Lines */
+    .hierarchy-connector {
+      position: relative;
+    }
+    .hierarchy-connector::before {
+      content: '';
+      position: absolute;
+      top: -32px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 3px;
+      height: 32px;
+      background: linear-gradient(to bottom, rgba(147, 51, 234, 0.6), rgba(147, 51, 234, 0.3));
+      border-radius: 2px;
+    }
+
+    /* Pulse animation for connection lines */
+    @keyframes flowDown {
+      0% { background-position: 0% 0%; }
+      100% { background-position: 0% 200%; }
+    }
+    @keyframes flowUp {
+      0% { background-position: 0% 200%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    .connector-line {
+      width: 3px;
+      height: 40px;
+      margin: 0 auto;
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .connector-line-inner {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        180deg,
+        rgba(147, 51, 234, 0.15) 0%,
+        rgba(168, 85, 247, 0.7) 40%,
+        rgba(250, 204, 21, 0.9) 50%,
+        rgba(168, 85, 247, 0.7) 60%,
+        rgba(147, 51, 234, 0.15) 100%
+      );
+      background-size: 100% 200%;
+      animation: flowDown 2.5s ease-in-out infinite;
+    }
+
+    .connector-line-up .connector-line-inner {
+      background: linear-gradient(
+        0deg,
+        rgba(147, 51, 234, 0.15) 0%,
+        rgba(59, 130, 246, 0.5) 40%,
+        rgba(34, 197, 94, 0.8) 50%,
+        rgba(59, 130, 246, 0.5) 60%,
+        rgba(147, 51, 234, 0.15) 100%
+      );
+      background-size: 100% 200%;
+      animation: flowUp 3s ease-in-out infinite;
+    }
+
+    /* Stagger connector animations */
+    .connector-line:nth-child(1) .connector-line-inner { animation-delay: 0s; }
+    .connector-line:nth-child(2) .connector-line-inner { animation-delay: 0.3s; }
+    .connector-line:nth-child(3) .connector-line-inner { animation-delay: 0.6s; }
+    .connector-line:nth-child(4) .connector-line-inner { animation-delay: 0.9s; }
+    .connector-line:nth-child(5) .connector-line-inner { animation-delay: 1.2s; }
+
+    /* Goal card pulse */
+    @keyframes subtlePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.0); }
+      50% { box-shadow: 0 0 20px 2px rgba(147, 51, 234, 0.15); }
+    }
+    .goal-card {
+      animation: subtlePulse 4s ease-in-out infinite;
+    }
+    .goal-card:nth-child(2) { animation-delay: 0.5s; }
+    .goal-card:nth-child(3) { animation-delay: 1s; }
+    .goal-card:nth-child(4) { animation-delay: 1.5s; }
+    .goal-card:nth-child(5) { animation-delay: 2s; }
+    .goal-card:nth-child(6) { animation-delay: 2.5s; }
+
+    /* Timeline progress animation */
+    @keyframes timelineGrow {
+      from { width: 0; }
+      to { width: var(--progress-width); }
+    }
+    .timeline-progress {
+      animation: timelineGrow 1.5s ease-out forwards;
+    }
+
+    /* Hero background animation */
+    @keyframes heroShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .hero-bg {
+      background-size: 200% 200%;
+      animation: heroShift 12s ease-in-out infinite;
+    }
+
+    /* Badge shimmer */
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    .badge-shimmer {
+      background: linear-gradient(90deg, rgba(250,204,21,0) 0%, rgba(250,204,21,0.3) 50%, rgba(250,204,21,0) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    /* Dual flow indicator labels */
+    .flow-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.6;
+    }
+  </style>
+</head>
+<body class="font-sans bg-white text-slate-900 antialiased">
+
+  <!-- ============================================ -->
+  <!-- NAVIGATION (sticky, same across all pages)   -->
+  <!-- ============================================ -->
+  <nav class="bg-white/95 backdrop-blur-sm shadow-sm fixed top-0 w-full z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <div class="flex items-center gap-2">
+          <span class="text-purple-600 font-bold text-xl">AZ</span>
+          <span class="text-slate-600 text-sm font-medium hidden sm:inline">Intelligence Flow</span>
+        </div>
+        <!-- Links -->
+        <div class="flex items-center gap-1 sm:gap-4 md:gap-6">
+          <a href="index.html" class="text-slate-500 hover:text-purple-600 transition-colors text-xs sm:text-sm font-medium px-1 py-1">The Gap</a>
+          <a href="scorecard.html" class="text-purple-700 font-semibold border-b-2 border-purple-700 text-xs sm:text-sm px-1 py-1">Living Scorecard</a>
+          <a href="flow.html" class="text-slate-500 hover:text-purple-600 transition-colors text-xs sm:text-sm font-medium px-1 py-1">Intelligence Flow</a>
+          <a href="agents.html" class="text-slate-500 hover:text-purple-600 transition-colors text-xs sm:text-sm font-medium px-1 py-1">Your Agent</a>
+          <a href="roadmap.html" class="text-slate-500 hover:text-purple-600 transition-colors text-xs sm:text-sm font-medium px-1 py-1">Roadmap</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============================================ -->
+  <!-- HERO SECTION                                 -->
+  <!-- ============================================ -->
+  <section class="hero-bg bg-gradient-to-br from-purple-950 via-purple-800 to-indigo-900 pt-32 pb-24 md:pt-40 md:pb-32 relative overflow-hidden">
+    <!-- Decorative orbs -->
+    <div class="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-10 right-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-400/5 rounded-full blur-3xl"></div>
+
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+      <!-- Pilot Proven Badge -->
+      <div class="inline-flex items-center gap-2 mb-8 px-5 py-2.5 rounded-full border border-amber-400/40 bg-amber-400/10 relative overflow-hidden">
+        <div class="badge-shimmer absolute inset-0 rounded-full"></div>
+        <svg class="w-5 h-5 text-amber-400 relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="text-amber-300 text-sm font-semibold tracking-wide relative z-10">Pilot Proven</span>
+      </div>
+
+      <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+        The Living Scorecard
+      </h1>
+      <p class="text-lg md:text-xl text-purple-200 max-w-3xl mx-auto leading-relaxed">
+        From static spreadsheets to a dynamic, connected goal system&mdash;and it's already working.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 1: THE FOUNDATION                    -->
+  <!-- ============================================ -->
+  <section class="py-20 md:py-28 bg-white">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="reveal text-center mb-16">
+        <p class="text-purple-600 font-semibold text-sm tracking-widest uppercase mb-4">What's Been Built</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">The Foundation</h2>
+        <p class="text-base md:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          Annual goals from Enterprise level down to Individual level&mdash;all in one connected database.
+          The first pilot with one Business Unit was successful. Phase 2 is launching now, with full launch planned for Summer 2026.
+        </p>
+      </div>
+
+      <!-- Key Points Grid -->
+      <div class="reveal grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+        <div class="text-center p-6">
+          <div class="w-14 h-14 rounded-2xl bg-purple-100 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-slate-900 mb-2">Connected Database</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Enterprise to Individual goals in one structured, queryable system</p>
+        </div>
+        <div class="text-center p-6">
+          <div class="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-slate-900 mb-2">Pilot Successful</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">First Business Unit onboarded, validated, and delivering value</p>
+        </div>
+        <div class="text-center p-6">
+          <div class="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+            </svg>
+          </div>
+          <h3 class="font-semibold text-slate-900 mb-2">Scaling Now</h3>
+          <p class="text-sm text-slate-500 leading-relaxed">Phase 2 underway, full enterprise launch by Summer 2026</p>
+        </div>
+      </div>
+
+      <!-- Timeline Visual -->
+      <div class="reveal">
+        <div class="relative max-w-4xl mx-auto">
+          <!-- Timeline track -->
+          <div class="absolute top-8 left-0 right-0 h-1.5 bg-slate-200 rounded-full"></div>
+          <!-- Progress fill -->
+          <div class="absolute top-8 left-0 h-1.5 bg-gradient-to-r from-purple-600 via-purple-500 to-amber-400 rounded-full timeline-progress" style="--progress-width: 50%"></div>
+
+          <div class="relative flex justify-between items-start">
+            <!-- Phase 1 -->
+            <div class="flex flex-col items-center text-center w-1/3">
+              <div class="w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-600/30 ring-4 ring-white z-10">
+                <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+              </div>
+              <div class="mt-5">
+                <span class="inline-block px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold mb-2">COMPLETE</span>
+                <h4 class="font-bold text-slate-900 text-sm">Phase 1: Pilot</h4>
+                <p class="text-xs text-slate-500 mt-1">Single BU validated</p>
+              </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="flex flex-col items-center text-center w-1/3">
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-amber-400 flex items-center justify-center shadow-lg shadow-purple-500/30 ring-4 ring-white z-10 relative">
+                <div class="absolute inset-0 rounded-full bg-gradient-to-br from-purple-500 to-amber-400 animate-ping opacity-20"></div>
+                <svg class="w-7 h-7 text-white relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728m-9.9-2.829a5 5 0 010-7.07m7.072 0a5 5 0 010 7.07M13 12a1 1 0 11-2 0 1 1 0 012 0z" />
+                </svg>
+              </div>
+              <div class="mt-5">
+                <span class="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold mb-2">IN PROGRESS</span>
+                <h4 class="font-bold text-slate-900 text-sm">Phase 2: Expand</h4>
+                <p class="text-xs text-slate-500 mt-1">Multi-BU rollout</p>
+              </div>
+            </div>
+
+            <!-- Full Launch -->
+            <div class="flex flex-col items-center text-center w-1/3">
+              <div class="w-16 h-16 rounded-full bg-slate-200 flex items-center justify-center ring-4 ring-white z-10">
+                <svg class="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.841m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                </svg>
+              </div>
+              <div class="mt-5">
+                <span class="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold mb-2">SUMMER 2026</span>
+                <h4 class="font-bold text-slate-900 text-sm">Full Launch</h4>
+                <p class="text-xs text-slate-500 mt-1">Enterprise-wide deployment</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 2: THE GOAL HIERARCHY (KEY VISUAL)   -->
+  <!-- ============================================ -->
+  <section class="py-20 md:py-28 bg-gradient-to-b from-slate-50 to-purple-50/50">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="reveal text-center mb-6">
+        <p class="text-purple-600 font-semibold text-sm tracking-widest uppercase mb-4">The Key Visual</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">The Goal Hierarchy</h2>
+        <p class="text-base md:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          Six levels of strategic alignment. Strategy flows down. Progress flows up. Every goal is connected.
+        </p>
+      </div>
+
+      <!-- Flow direction labels -->
+      <div class="reveal flex justify-center items-center gap-12 mb-10 text-xs font-medium">
+        <div class="flex items-center gap-2 text-purple-500">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+          </svg>
+          <span>Strategy flows down</span>
+        </div>
+        <div class="flex items-center gap-2 text-green-500">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+          </svg>
+          <span>Progress flows up</span>
+        </div>
+      </div>
+
+      <!-- Hierarchy Visualization -->
+      <div class="reveal" id="goalHierarchy">
+        <div class="flex flex-col items-center">
+
+          <!-- Level 1: Enterprise -->
+          <div class="goal-card w-full max-w-lg bg-purple-950 rounded-2xl p-5 shadow-xl shadow-purple-950/20 border border-purple-800/50 relative group hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-800/60 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-purple-400 text-xs font-semibold tracking-wider uppercase">Level 1 &middot; Enterprise</p>
+                  <p class="text-white font-semibold text-sm">AstraZeneca Strategic Priorities</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-800/60 text-purple-300 text-xs font-bold">5 goals</span>
+            </div>
+          </div>
+
+          <!-- Connector: Strategy down + Progress up (dual) -->
+          <div class="flex items-center gap-3 my-0">
+            <div class="connector-line" style="height: 44px;">
+              <div class="connector-line-inner"></div>
+            </div>
+            <div class="connector-line connector-line-up" style="height: 44px;">
+              <div class="connector-line-inner"></div>
+            </div>
+          </div>
+
+          <!-- Level 2: Business Unit -->
+          <div class="goal-card w-full max-w-lg bg-purple-900 rounded-2xl p-5 shadow-xl shadow-purple-900/20 border border-purple-700/50 relative group hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-700/50 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3H21" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-purple-400 text-xs font-semibold tracking-wider uppercase">Level 2 &middot; Business Unit</p>
+                  <p class="text-white font-semibold text-sm">Oncology BU Goals</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-700/50 text-purple-300 text-xs font-bold">12 goals</span>
+            </div>
+          </div>
+
+          <!-- Connector -->
+          <div class="flex items-center gap-3 my-0">
+            <div class="connector-line" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 0.3s;"></div>
+            </div>
+            <div class="connector-line connector-line-up" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 0.3s;"></div>
+            </div>
+          </div>
+
+          <!-- Level 3: Function -->
+          <div class="goal-card w-full max-w-lg bg-purple-800 rounded-2xl p-5 shadow-xl shadow-purple-800/20 border border-purple-600/50 relative group hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-600/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-purple-300 text-xs font-semibold tracking-wider uppercase">Level 3 &middot; Function</p>
+                  <p class="text-white font-semibold text-sm">Commercial Excellence</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-600/40 text-purple-200 text-xs font-bold">8 goals</span>
+            </div>
+          </div>
+
+          <!-- Connector -->
+          <div class="flex items-center gap-3 my-0">
+            <div class="connector-line" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 0.6s;"></div>
+            </div>
+            <div class="connector-line connector-line-up" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 0.6s;"></div>
+            </div>
+          </div>
+
+          <!-- Level 4: Department -->
+          <div class="goal-card w-full max-w-lg bg-purple-700 rounded-2xl p-5 shadow-xl shadow-purple-700/20 border border-purple-500/50 relative group hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-500/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-purple-200 text-xs font-semibold tracking-wider uppercase">Level 4 &middot; Department</p>
+                  <p class="text-white font-semibold text-sm">Marketing Analytics</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-500/40 text-purple-100 text-xs font-bold">6 goals</span>
+            </div>
+          </div>
+
+          <!-- Connector -->
+          <div class="flex items-center gap-3 my-0">
+            <div class="connector-line" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 0.9s;"></div>
+            </div>
+            <div class="connector-line connector-line-up" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 0.9s;"></div>
+            </div>
+          </div>
+
+          <!-- Level 5: Team -->
+          <div class="goal-card w-full max-w-lg bg-purple-600 rounded-2xl p-5 shadow-xl shadow-purple-600/20 border border-purple-400/50 relative group hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-400/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-purple-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-purple-200 text-xs font-semibold tracking-wider uppercase">Level 5 &middot; Team</p>
+                  <p class="text-white font-semibold text-sm">Digital Engagement Team</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-400/40 text-purple-100 text-xs font-bold">4 goals</span>
+            </div>
+          </div>
+
+          <!-- Connector -->
+          <div class="flex items-center gap-3 my-0">
+            <div class="connector-line" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 1.2s;"></div>
+            </div>
+            <div class="connector-line connector-line-up" style="height: 44px;">
+              <div class="connector-line-inner" style="animation-delay: 1.2s;"></div>
+            </div>
+          </div>
+
+          <!-- Level 6: Individual -->
+          <div class="goal-card w-full max-w-lg bg-purple-500 rounded-2xl p-5 shadow-xl shadow-purple-500/20 border border-purple-300/50 relative group hover:scale-[1.02] transition-transform duration-300 cursor-default">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-300/40 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-purple-100 text-xs font-semibold tracking-wider uppercase">Level 6 &middot; Individual</p>
+                  <p class="text-white font-semibold text-sm">Data Scientist Objectives</p>
+                </div>
+              </div>
+              <span class="px-2.5 py-1 rounded-full bg-purple-300/40 text-white text-xs font-bold">3 goals</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Caption -->
+      <div class="reveal text-center mt-10">
+        <p class="text-sm text-slate-500 italic max-w-lg mx-auto">
+          Every goal at every level is structurally connected. When a Data Scientist updates progress, it's visible all the way up to Enterprise.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 3: FROM STATIC TO LIVING             -->
+  <!-- ============================================ -->
+  <section class="py-20 md:py-28 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="reveal text-center mb-16">
+        <p class="text-purple-600 font-semibold text-sm tracking-widest uppercase mb-4">The Transformation</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">From Static to Living</h2>
+        <p class="text-base md:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          See the difference between the old world of spreadsheet-based goals and the new connected, dynamic system.
+        </p>
+      </div>
+
+      <div class="reveal grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-stretch">
+
+        <!-- BEFORE (Left) -->
+        <div class="relative rounded-2xl border-2 border-slate-200 bg-slate-50 p-8 md:p-10">
+          <!-- Muted overlay feel -->
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-slate-100/50 to-slate-200/30 pointer-events-none"></div>
+          <div class="relative">
+            <!-- Label -->
+            <div class="flex items-center gap-3 mb-8">
+              <span class="px-4 py-1.5 rounded-full bg-slate-300 text-slate-600 text-xs font-bold uppercase tracking-wider">Before</span>
+              <div class="flex-1 h-px bg-slate-300"></div>
+            </div>
+
+            <!-- Icon -->
+            <div class="w-16 h-16 rounded-2xl bg-slate-200 flex items-center justify-center mx-auto mb-8">
+              <svg class="w-9 h-9 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 0v1.5c0 .621-.504 1.125-1.125 1.125" />
+              </svg>
+            </div>
+
+            <!-- Bullet points -->
+            <ul class="space-y-4">
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-600 font-medium text-sm">Static spreadsheets</p>
+                  <p class="text-slate-400 text-xs mt-0.5">Goals trapped in disconnected Excel files</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-600 font-medium text-sm">Manual updates</p>
+                  <p class="text-slate-400 text-xs mt-0.5">Someone has to remember to update, copy, email</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-600 font-medium text-sm">Periodic reviews</p>
+                  <p class="text-slate-400 text-xs mt-0.5">Quarterly check-ins on last quarter's data</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-600 font-medium text-sm">Stale data</p>
+                  <p class="text-slate-400 text-xs mt-0.5">By the time you see it, the world has changed</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-600 font-medium text-sm">No connection between levels</p>
+                  <p class="text-slate-400 text-xs mt-0.5">Individual goals exist in isolation from strategy</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- AFTER (Right) -->
+        <div class="relative rounded-2xl border-2 border-purple-300 bg-gradient-to-br from-white to-purple-50 p-8 md:p-10 shadow-lg shadow-purple-200/30">
+          <!-- Vibrant overlay feel -->
+          <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-50/30 to-amber-50/20 pointer-events-none"></div>
+          <div class="relative">
+            <!-- Label -->
+            <div class="flex items-center gap-3 mb-8">
+              <span class="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-amber-500 text-white text-xs font-bold uppercase tracking-wider">After</span>
+              <div class="flex-1 h-px bg-gradient-to-r from-purple-300 to-amber-300"></div>
+            </div>
+
+            <!-- Icon -->
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-700 flex items-center justify-center mx-auto mb-8 shadow-lg shadow-purple-600/30">
+              <svg class="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+              </svg>
+            </div>
+
+            <!-- Bullet points -->
+            <ul class="space-y-4">
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-900 font-medium text-sm">Dynamic connected database</p>
+                  <p class="text-slate-500 text-xs mt-0.5">One structured system for all goal levels</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-900 font-medium text-sm">Real-time updates</p>
+                  <p class="text-slate-500 text-xs mt-0.5">Progress visible the moment it happens</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-900 font-medium text-sm">Continuous visibility</p>
+                  <p class="text-slate-500 text-xs mt-0.5">Leadership always sees the current state, not a stale snapshot</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-900 font-medium text-sm">Structurally connected hierarchy</p>
+                  <p class="text-slate-500 text-xs mt-0.5">Every individual goal links to enterprise strategy</p>
+                </div>
+              </li>
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg class="w-3.5 h-3.5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-900 font-medium text-sm">AI-ready foundation</p>
+                  <p class="text-slate-500 text-xs mt-0.5">Structured data that intelligence agents can reason about</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- SECTION 4: WHAT THIS UNLOCKS                 -->
+  <!-- ============================================ -->
+  <section class="py-20 md:py-28 bg-gradient-to-b from-purple-50/50 to-slate-50">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="reveal text-center mb-16">
+        <p class="text-purple-600 font-semibold text-sm tracking-widest uppercase mb-4">The Possibilities</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-6">What This Unlocks</h2>
+        <p class="text-base md:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          Once goals live in a structured, connected database, entirely new capabilities become possible.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- Card 1: Real-Time Visibility -->
+        <div class="reveal bg-white rounded-2xl p-8 shadow-md shadow-slate-200/60 border border-slate-100 hover:shadow-lg hover:shadow-purple-100/40 transition-all duration-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Real-Time Visibility</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Leadership sees the current state of goals across the organization, not last quarter's state.
+            No more waiting for someone to compile a report that's already outdated.
+          </p>
+        </div>
+
+        <!-- Card 2: Dynamic Adaptation -->
+        <div class="reveal bg-white rounded-2xl p-8 shadow-md shadow-slate-200/60 border border-slate-100 hover:shadow-lg hover:shadow-purple-100/40 transition-all duration-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-700 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Dynamic Adaptation</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Goals evolve as reality changes, not locked in until the next annual planning cycle.
+            When market conditions shift, the system adapts in real time.
+          </p>
+        </div>
+
+        <!-- Card 3: Connected Impact -->
+        <div class="reveal bg-white rounded-2xl p-8 shadow-md shadow-slate-200/60 border border-slate-100 hover:shadow-lg hover:shadow-purple-100/40 transition-all duration-300 group">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Connected Impact</h3>
+          <p class="text-slate-600 text-sm leading-relaxed">
+            Every individual can see exactly how their work connects to enterprise strategy.
+            No more "what am I really contributing to?" -- the hierarchy makes it visible.
+          </p>
+        </div>
+
+        <!-- Card 4: Foundation for Intelligence -->
+        <div class="reveal bg-white rounded-2xl p-8 shadow-md shadow-slate-200/60 border border-slate-100 hover:shadow-lg hover:shadow-amber-100/40 transition-all duration-300 group relative overflow-hidden">
+          <!-- Gold accent -->
+          <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-100/60 to-transparent rounded-bl-full"></div>
+          <div class="relative">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+              <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-3">Foundation for Intelligence</h3>
+            <p class="text-slate-600 text-sm leading-relaxed">
+              A structured goal system is the prerequisite for AI-powered coordination.
+              Without this foundation, intelligent agents have nothing to reason about.
+              <span class="text-amber-600 font-semibold">This is what makes everything else possible.</span>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- BOTTOM NAVIGATION                            -->
+  <!-- ============================================ -->
+  <section class="py-16 bg-white border-t border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between">
+        <!-- Previous -->
+        <a href="index.html" class="group flex items-center gap-3 text-slate-500 hover:text-purple-600 transition-colors">
+          <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          <div class="text-left">
+            <p class="text-xs text-slate-400 font-medium">Previous</p>
+            <p class="text-sm font-semibold">The Intelligence Gap</p>
+          </div>
+        </a>
+
+        <!-- Next -->
+        <a href="flow.html" class="group flex items-center gap-3 text-slate-500 hover:text-purple-600 transition-colors">
+          <div class="text-right">
+            <p class="text-xs text-slate-400 font-medium">Next</p>
+            <p class="text-sm font-semibold">The Intelligence Flow</p>
+          </div>
+          <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- FOOTER                                       -->
+  <!-- ============================================ -->
+  <footer class="py-8 text-center text-slate-400 text-sm border-t border-slate-200">
+    AstraZeneca Intelligence Flow &bull; Confidential
+  </footer>
+
+  <!-- ============================================ -->
+  <!-- SCRIPTS                                      -->
+  <!-- ============================================ -->
+  <script>
+    // Scroll Reveal
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1 });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    });
+
+    // Stagger the hierarchy card reveals for a cascading effect
+    document.addEventListener('DOMContentLoaded', () => {
+      const hierarchy = document.getElementById('goalHierarchy');
+      if (!hierarchy) return;
+
+      const cards = hierarchy.querySelectorAll('.goal-card');
+      const connectors = hierarchy.querySelectorAll('.connector-line');
+
+      const hierarchyObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            cards.forEach((card, index) => {
+              card.style.opacity = '0';
+              card.style.transform = 'translateY(20px) scale(0.95)';
+              card.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+              setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0) scale(1)';
+              }, index * 150);
+            });
+
+            connectors.forEach((connector, index) => {
+              connector.style.opacity = '0';
+              connector.style.transition = 'opacity 0.4s ease-out';
+              setTimeout(() => {
+                connector.style.opacity = '1';
+              }, index * 150 + 100);
+            });
+
+            hierarchyObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.2 });
+
+      hierarchyObserver.observe(hierarchy);
+    });
+
+    // Animate timeline on scroll
+    document.addEventListener('DOMContentLoaded', () => {
+      const timelineProgress = document.querySelector('.timeline-progress');
+      if (!timelineProgress) return;
+
+      // Reset and re-trigger animation on scroll into view
+      timelineProgress.style.width = '0';
+      const timelineObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            setTimeout(() => {
+              timelineProgress.style.transition = 'width 1.5s ease-out';
+              timelineProgress.style.width = '50%';
+            }, 300);
+            timelineObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      timelineObserver.observe(timelineProgress.parentElement);
+    });
+  </script>
+
+</body>
+</html>
