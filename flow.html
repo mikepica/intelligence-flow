@@ -20,7 +20,7 @@
     }
   </script>
   <style>
-    /* ── Scroll Reveal ── */
+    /* -- Scroll Reveal -- */
     .reveal {
       opacity: 0;
       transform: translateY(30px);
@@ -31,7 +31,7 @@
       transform: translateY(0);
     }
 
-    /* ── Hero animated connection lines ── */
+    /* -- Hero animated background -- */
     .hero-bg-lines {
       position: absolute;
       inset: 0;
@@ -43,90 +43,83 @@
       height: 100%;
     }
 
-    /* ── Hub-and-spoke particle animations ── */
-    @keyframes pulseGlow {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(168,85,247,0.4)); }
-      50% { filter: drop-shadow(0 0 18px rgba(168,85,247,0.8)); }
-    }
-    @keyframes hubRotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes hubRotateReverse {
-      from { transform: rotate(360deg); }
-      to { transform: rotate(0deg); }
-    }
-    .hub-glow {
-      animation: pulseGlow 3s ease-in-out infinite;
-    }
+    /* -- Smooth scroll -- */
+    html { scroll-behavior: smooth; }
 
-    /* ── Particle keyframes for spoke paths ── */
-    @keyframes particleUpward {
-      0% { offset-distance: 100%; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { offset-distance: 0%; opacity: 0; }
-    }
-    @keyframes particleDownward {
-      0% { offset-distance: 0%; opacity: 0; }
-      10% { opacity: 1; }
-      90% { opacity: 1; }
-      100% { offset-distance: 100%; opacity: 0; }
-    }
-
-    /* ── Context graph node pulse ── */
-    @keyframes nodePulse {
-      0%, 100% { r: 4; opacity: 0.7; }
-      50% { r: 6; opacity: 1; }
-    }
-    @keyframes edgePulse {
-      0%, 100% { stroke-opacity: 0.2; }
-      50% { stroke-opacity: 0.6; }
-    }
-
-    /* ── Flow steps connector ── */
-    .flow-step-connector {
-      position: relative;
-    }
-    .flow-step-connector::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      right: -1.5rem;
-      width: 3rem;
-      height: 2px;
-      background: linear-gradient(90deg, #a855f7, #f59e0b);
-    }
-    @media (max-width: 768px) {
-      .flow-step-connector::after {
-        top: auto;
-        bottom: -1.5rem;
-        left: 50%;
-        right: auto;
-        width: 2px;
-        height: 3rem;
-        background: linear-gradient(180deg, #a855f7, #f59e0b);
-      }
-    }
-
-    /* ── Direction card hover ── */
-    .direction-card {
+    /* -- Scene card styling -- */
+    .scene-card {
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    .direction-card:hover {
+    .scene-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+
+    /* -- Flow connector between scene cards -- */
+    .flow-connector {
+      position: relative;
+    }
+    .flow-connector::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -2rem;
+      width: 2px;
+      height: 2rem;
+      background: linear-gradient(180deg, rgba(251,191,36,0.6), rgba(168,85,247,0.3));
+      transform: translateX(-50%);
+    }
+
+    /* -- Ingredient card hover -- */
+    .ingredient-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .ingredient-card:hover {
       transform: translateY(-6px);
       box-shadow: 0 20px 40px rgba(0,0,0,0.12);
     }
 
-    /* ── Smooth scroll ── */
-    html { scroll-behavior: smooth; }
+    /* -- Pulse animation for avatar rings -- */
+    @keyframes subtlePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0.3); }
+      50% { box-shadow: 0 0 0 8px rgba(251,191,36,0); }
+    }
+    .avatar-pulse {
+      animation: subtlePulse 3s ease-in-out infinite;
+    }
+
+    /* -- Connection dot animation -- */
+    @keyframes connectionGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+    .connection-dot {
+      animation: connectionGlow 2.5s ease-in-out infinite;
+    }
+
+    /* -- Before/After comparison styling -- */
+    .comparison-today {
+      border-left: 3px solid #94a3b8;
+    }
+    .comparison-flow {
+      border-left: 3px solid #a855f7;
+    }
+
+    /* -- Dashboard mockup styling -- */
+    @keyframes dashPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+    .dash-pulse {
+      animation: dashPulse 3s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="font-sans bg-white text-slate-900 antialiased">
 
-  <!-- ════════════════════════════════════════════
+  <!-- ================================================================
        NAVIGATION
-       ════════════════════════════════════════════ -->
+       ================================================================ -->
   <nav class="bg-white/95 backdrop-blur-sm shadow-sm fixed top-0 w-full z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
@@ -161,11 +154,11 @@
     </div>
   </nav>
 
-  <!-- ════════════════════════════════════════════
+  <!-- ================================================================
        HERO SECTION
-       ════════════════════════════════════════════ -->
+       ================================================================ -->
   <section class="relative min-h-[85vh] flex items-center justify-center pt-20 overflow-hidden bg-gradient-to-br from-purple-950 via-purple-800 to-indigo-900">
-    <!-- Animated background connection lines -->
+    <!-- Animated background -->
     <div class="hero-bg-lines" id="heroLines"></div>
 
     <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -174,11 +167,14 @@
         The Intelligence Flow
       </h1>
       <p class="text-xl md:text-2xl text-purple-200 max-w-3xl mx-auto leading-relaxed reveal" style="transition-delay:0.2s;">
-        AI agents that connect every level of the organization &mdash; breaking silos with real-time intelligence
+        What naturally happens when every person's expertise is amplified and connected
+      </p>
+      <p class="text-base md:text-lg text-purple-300/80 max-w-2xl mx-auto mt-4 reveal" style="transition-delay:0.25s;">
+        Not a product you build. A byproduct of people doing great work with great tools.
       </p>
       <div class="mt-10 reveal" style="transition-delay:0.3s;">
-        <a href="#hub-spoke" class="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 transition-colors font-medium">
-          <span>See how it works</span>
+        <a href="#day-in-the-flow" class="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 transition-colors font-medium">
+          <span>See a day in the flow</span>
           <svg class="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
           </svg>
@@ -187,607 +183,539 @@
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════
-       SECTION 1: THE HUB-AND-SPOKE MODEL
-       ════════════════════════════════════════════ -->
-  <section id="hub-spoke" class="relative py-24 md:py-32 bg-gradient-to-b from-purple-950 via-indigo-950 to-slate-900 overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16 reveal">
-        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">The Hub-and-Spoke Model</h2>
-        <p class="text-purple-300 text-lg max-w-2xl mx-auto">A living architecture where intelligence flows continuously between every level of the organization</p>
+  <!-- ================================================================
+       SECTION 1: A DAY IN THE FLOW (THE CENTERPIECE)
+       ================================================================ -->
+  <section id="day-in-the-flow" class="relative py-24 md:py-32 bg-gradient-to-b from-purple-950 via-indigo-950 to-slate-900 overflow-hidden">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-20 reveal">
+        <p class="text-amber-400 font-semibold text-sm tracking-widest uppercase mb-4">The Centerpiece</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">A Day in the Flow</h2>
+        <p class="text-purple-300 text-lg max-w-2xl mx-auto">A cross-functional story at AstraZeneca. Five moments. Two people. One outcome no org chart could have planned.</p>
       </div>
 
-      <!-- Hub-and-Spoke SVG Visualization -->
-      <div class="reveal flex justify-center" style="transition-delay:0.15s;">
-        <div class="relative w-full" style="max-width:800px;">
-          <svg id="hubSpokeSVG" viewBox="0 0 800 800" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <!-- Gradients -->
-              <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#c084fc"/>
-                <stop offset="100%" stop-color="#7c3aed"/>
-              </radialGradient>
-              <radialGradient id="nodeGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#a78bfa"/>
-                <stop offset="100%" stop-color="#6d28d9"/>
-              </radialGradient>
-              <linearGradient id="spokeGradUp" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#c084fc" stop-opacity="0.8"/>
-              </linearGradient>
-              <linearGradient id="spokeGradRight" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.8"/>
-                <stop offset="100%" stop-color="#c084fc" stop-opacity="0.3"/>
-              </linearGradient>
+      <!-- Narrative Timeline -->
+      <div class="relative">
+        <!-- Vertical flowing line -->
+        <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-purple-600/60 via-amber-400/40 to-purple-600/60 transform -translate-x-1/2 hidden md:block"></div>
 
-              <!-- Glow filter -->
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-              <filter id="glowStrong">
-                <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-
-              <!-- Particle shapes -->
-              <circle id="particlePurple" r="4" fill="#c084fc"/>
-              <circle id="particleGold" r="4" fill="#fbbf24"/>
-              <circle id="particleLight" r="3" fill="#e9d5ff"/>
-            </defs>
-
-            <!-- Background subtle rings -->
-            <circle cx="400" cy="400" r="340" fill="none" stroke="rgba(168,85,247,0.08)" stroke-width="1"/>
-            <circle cx="400" cy="400" r="280" fill="none" stroke="rgba(168,85,247,0.06)" stroke-width="1"/>
-            <circle cx="400" cy="400" r="220" fill="none" stroke="rgba(168,85,247,0.04)" stroke-width="1"/>
-
-            <!-- Spoke lines (drawn as paths for particle animation) -->
-            <g id="spokeLines" stroke="url(#spokeGradUp)" stroke-width="2" fill="none" opacity="0.5">
-              <!-- Spoke paths: center (400,400) to each node -->
-              <path id="spoke0" d="M400,400 L400,100" class="spoke-line"/>
-              <path id="spoke1" d="M400,400 L660,250" class="spoke-line"/>
-              <path id="spoke2" d="M400,400 L660,550" class="spoke-line"/>
-              <path id="spoke3" d="M400,400 L400,700" class="spoke-line"/>
-              <path id="spoke4" d="M400,400 L140,550" class="spoke-line"/>
-              <path id="spoke5" d="M400,400 L140,250" class="spoke-line"/>
-            </g>
-
-            <!-- Lateral connection arcs (between adjacent nodes) -->
-            <g id="lateralLines" stroke="rgba(233,213,255,0.15)" stroke-width="1" fill="none" stroke-dasharray="4 6">
-              <path id="lateral01" d="M400,100 Q560,140 660,250"/>
-              <path id="lateral12" d="M660,250 Q700,400 660,550"/>
-              <path id="lateral23" d="M660,550 Q560,660 400,700"/>
-              <path id="lateral34" d="M400,700 Q240,660 140,550"/>
-              <path id="lateral45" d="M140,550 Q100,400 140,250"/>
-              <path id="lateral50" d="M140,250 Q240,140 400,100"/>
-            </g>
-
-            <!-- PARTICLE CONTAINER (JS will populate) -->
-            <g id="particleContainer"></g>
-
-            <!-- Outer Nodes -->
-            <g id="outerNodes">
-              <!-- Node 0: Enterprise Leadership (top) -->
-              <g class="outer-node" transform="translate(400,100)">
-                <circle r="48" fill="url(#nodeGradient)" filter="url(#glow)" opacity="0.9"/>
-                <circle r="48" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.5"/>
-                <!-- Chart/Dashboard icon -->
-                <g transform="translate(-14,-14)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="2" y="2" width="24" height="24" rx="3" opacity="0"/>
-                  <path d="M4 20 L4 14"/>
-                  <path d="M10 20 L10 8"/>
-                  <path d="M16 20 L16 12"/>
-                  <path d="M22 20 L22 4"/>
-                </g>
-                <text y="70" text-anchor="middle" fill="white" font-size="13" font-weight="600">Enterprise</text>
-                <text y="85" text-anchor="middle" fill="rgba(196,181,253,0.9)" font-size="12" font-weight="400">Leadership</text>
-              </g>
-
-              <!-- Node 1: Business Units (upper-right) -->
-              <g class="outer-node" transform="translate(660,250)">
-                <circle r="48" fill="url(#nodeGradient)" filter="url(#glow)" opacity="0.9"/>
-                <circle r="48" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.5"/>
-                <!-- Building icon -->
-                <g transform="translate(-14,-14)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M4 28 L4 6 L16 2 L16 28"/>
-                  <path d="M16 12 L24 16 L24 28"/>
-                  <path d="M8 8 L8 8.01"/>
-                  <path d="M8 14 L8 14.01"/>
-                  <path d="M8 20 L8 20.01"/>
-                  <path d="M12 8 L12 8.01"/>
-                  <path d="M12 14 L12 14.01"/>
-                  <path d="M12 20 L12 20.01"/>
-                  <path d="M20 18 L20 18.01"/>
-                  <path d="M20 22 L20 22.01"/>
-                </g>
-                <text y="70" text-anchor="middle" fill="white" font-size="13" font-weight="600">Business</text>
-                <text y="85" text-anchor="middle" fill="rgba(196,181,253,0.9)" font-size="12" font-weight="400">Units</text>
-              </g>
-
-              <!-- Node 2: Functions (lower-right) -->
-              <g class="outer-node" transform="translate(660,550)">
-                <circle r="48" fill="url(#nodeGradient)" filter="url(#glow)" opacity="0.9"/>
-                <circle r="48" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.5"/>
-                <!-- Gear icon -->
-                <g transform="translate(-14,-12)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="14" cy="14" r="4"/>
-                  <path d="M14 2 L14 6"/>
-                  <path d="M14 22 L14 26"/>
-                  <path d="M2 14 L6 14"/>
-                  <path d="M22 14 L26 14"/>
-                  <path d="M5.5 5.5 L8.3 8.3"/>
-                  <path d="M19.7 19.7 L22.5 22.5"/>
-                  <path d="M5.5 22.5 L8.3 19.7"/>
-                  <path d="M19.7 8.3 L22.5 5.5"/>
-                </g>
-                <text y="70" text-anchor="middle" fill="white" font-size="13" font-weight="600">Functions</text>
-              </g>
-
-              <!-- Node 3: Departments (bottom) -->
-              <g class="outer-node" transform="translate(400,700)">
-                <circle r="48" fill="url(#nodeGradient)" filter="url(#glow)" opacity="0.9"/>
-                <circle r="48" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.5"/>
-                <!-- People icon -->
-                <g transform="translate(-16,-10)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="10" cy="6" r="4"/>
-                  <path d="M2 22 C2 17.6 5.6 14 10 14 C14.4 14 18 17.6 18 22"/>
-                  <circle cx="22" cy="8" r="3"/>
-                  <path d="M26 22 C26 18.7 23.3 16 20 16 C19 16 18.1 16.3 17.4 16.7"/>
-                </g>
-                <text y="70" text-anchor="middle" fill="white" font-size="13" font-weight="600">Departments</text>
-              </g>
-
-              <!-- Node 4: Teams (lower-left) -->
-              <g class="outer-node" transform="translate(140,550)">
-                <circle r="48" fill="url(#nodeGradient)" filter="url(#glow)" opacity="0.9"/>
-                <circle r="48" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.5"/>
-                <!-- Team icon -->
-                <g transform="translate(-14,-12)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="14" cy="6" r="4"/>
-                  <path d="M6 24 C6 19.6 9.6 16 14 16 C18.4 16 22 19.6 22 24"/>
-                  <circle cx="5" cy="10" r="3"/>
-                  <path d="M0 24 C0 20.7 2.7 18 6 18"/>
-                  <circle cx="23" cy="10" r="3"/>
-                  <path d="M28 24 C28 20.7 25.3 18 22 18"/>
-                </g>
-                <text y="70" text-anchor="middle" fill="white" font-size="13" font-weight="600">Teams</text>
-              </g>
-
-              <!-- Node 5: Individual Contributors (upper-left) -->
-              <g class="outer-node" transform="translate(140,250)">
-                <circle r="48" fill="url(#nodeGradient)" filter="url(#glow)" opacity="0.9"/>
-                <circle r="48" fill="none" stroke="rgba(196,181,253,0.4)" stroke-width="1.5"/>
-                <!-- Person icon -->
-                <g transform="translate(-10,-12)" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="10" cy="8" r="5"/>
-                  <path d="M0 26 C0 20 4.5 16 10 16 C15.5 16 20 20 20 26"/>
-                </g>
-                <text y="70" text-anchor="middle" fill="white" font-size="13" font-weight="600">Individual</text>
-                <text y="85" text-anchor="middle" fill="rgba(196,181,253,0.9)" font-size="12" font-weight="400">Contributors</text>
-              </g>
-            </g>
-
-            <!-- CENTER HUB -->
-            <g id="centerHub" transform="translate(400,400)">
-              <!-- Outer ring animation -->
-              <circle r="95" fill="none" stroke="rgba(196,181,253,0.15)" stroke-width="1" stroke-dasharray="6 4">
-                <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="60s" repeatCount="indefinite"/>
-              </circle>
-              <circle r="85" fill="none" stroke="rgba(196,181,253,0.1)" stroke-width="1" stroke-dasharray="4 8">
-                <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="45s" repeatCount="indefinite"/>
-              </circle>
-
-              <!-- Hub body -->
-              <circle r="75" fill="url(#hubGradient)" filter="url(#glowStrong)"/>
-              <circle r="75" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
-              <circle r="65" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-
-              <!-- Hub icon: connected nodes -->
-              <g fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.9">
-                <circle cx="0" cy="-12" r="6" fill="rgba(255,255,255,0.15)"/>
-                <circle cx="14" cy="8" r="5" fill="rgba(255,255,255,0.1)"/>
-                <circle cx="-14" cy="8" r="5" fill="rgba(255,255,255,0.1)"/>
-                <line x1="0" y1="-6" x2="11" y2="4"/>
-                <line x1="0" y1="-6" x2="-11" y2="4"/>
-                <line x1="-9" y1="8" x2="9" y2="8"/>
-              </g>
-
-              <!-- Hub text -->
-              <text y="32" text-anchor="middle" fill="white" font-size="14" font-weight="700">Intelligence</text>
-              <text y="48" text-anchor="middle" fill="rgba(253,230,138,0.95)" font-size="12" font-weight="600">Hub</text>
-            </g>
-          </svg>
-
-          <!-- Legend -->
-          <div class="flex flex-wrap justify-center gap-6 mt-8 text-sm">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-purple-400 shadow-lg shadow-purple-400/50"></span>
-              <span class="text-purple-300">Upward Flow (Ground Truth)</span>
+        <!-- Scene 1: Maria -->
+        <div class="relative mb-16 reveal" style="transition-delay:0.05s;">
+          <div class="md:grid md:grid-cols-2 md:gap-12 items-center">
+            <!-- Character Card - Left -->
+            <div class="md:text-right mb-6 md:mb-0">
+              <div class="inline-block md:float-right">
+                <div class="flex items-center gap-4 md:flex-row-reverse mb-4">
+                  <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-purple-500/30 avatar-pulse">
+                    M
+                  </div>
+                  <div class="md:text-right">
+                    <p class="text-white font-semibold text-lg">Maria</p>
+                    <p class="text-purple-400 text-sm">Oncology Analytics</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-amber-400 shadow-lg shadow-amber-400/50"></span>
-              <span class="text-purple-300">Downward Flow (Strategy)</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-purple-200 shadow-lg shadow-purple-200/50"></span>
-              <span class="text-purple-300">Lateral Flow (Cross-functional)</span>
+            <!-- Scene Content - Right -->
+            <div class="relative">
+              <!-- Connection dot on timeline -->
+              <div class="absolute left-0 top-6 w-3 h-3 rounded-full bg-purple-400 transform -translate-x-[calc(50%+0.5px)] hidden md:block connection-dot" style="left:-1.5rem;"></div>
+              <div class="scene-card bg-purple-900/40 backdrop-blur-sm border border-purple-700/30 rounded-2xl p-6 md:p-8">
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="text-xs font-bold text-purple-400 bg-purple-400/10 px-3 py-1 rounded-full">Scene 1</span>
+                  <span class="text-xs text-purple-500">8:30 AM</span>
+                </div>
+                <p class="text-purple-100 text-base md:text-lg leading-relaxed">
+                  Maria is analyzing real-world evidence for a new combination therapy. Her PAI &mdash; trained on her methodology, her experience, her judgment &mdash; helps her surface a pattern in the data she might have missed. A correlation between patient subgroups and response rates that changes the story.
+                </p>
+              </div>
             </div>
           </div>
         </div>
+
+        <!-- Scene 2: David -->
+        <div class="relative mb-16 reveal" style="transition-delay:0.1s;">
+          <div class="md:grid md:grid-cols-2 md:gap-12 items-center">
+            <!-- Scene Content - Left -->
+            <div class="relative order-2 md:order-1">
+              <div class="absolute right-0 top-6 w-3 h-3 rounded-full bg-indigo-400 transform translate-x-[calc(50%+0.5px)] hidden md:block connection-dot" style="right:-1.5rem; animation-delay: 0.5s;"></div>
+              <div class="scene-card bg-indigo-900/40 backdrop-blur-sm border border-indigo-700/30 rounded-2xl p-6 md:p-8">
+                <div class="flex items-center gap-2 mb-3">
+                  <span class="text-xs font-bold text-indigo-400 bg-indigo-400/10 px-3 py-1 rounded-full">Scene 2</span>
+                  <span class="text-xs text-indigo-500">10:15 AM</span>
+                </div>
+                <p class="text-purple-100 text-base md:text-lg leading-relaxed">
+                  Meanwhile, David in Commercial Strategy is building the market access model for the same therapy. His PAI, optimized with his market expertise, flags that Maria's analysis directly impacts his pricing assumptions. The data she just uncovered changes his model's foundation.
+                </p>
+              </div>
+            </div>
+            <!-- Character Card - Right -->
+            <div class="order-1 md:order-2 mb-6 md:mb-0">
+              <div class="inline-block">
+                <div class="flex items-center gap-4 mb-4">
+                  <div class="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30 avatar-pulse" style="animation-delay: 0.5s;">
+                    D
+                  </div>
+                  <div>
+                    <p class="text-white font-semibold text-lg">David</p>
+                    <p class="text-indigo-400 text-sm">Commercial Strategy</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 3: Connection Moment (THE GOLD MOMENT) -->
+        <div class="relative mb-16 reveal" style="transition-delay:0.15s;">
+          <div class="max-w-2xl mx-auto">
+            <!-- Gold connection indicator -->
+            <div class="absolute left-1/2 top-0 w-4 h-4 rounded-full bg-amber-400 transform -translate-x-1/2 -translate-y-2 hidden md:block shadow-lg shadow-amber-400/50 connection-dot" style="animation-delay: 1s;"></div>
+            <div class="scene-card bg-gradient-to-br from-amber-900/30 via-purple-900/40 to-amber-900/30 backdrop-blur-sm border border-amber-500/30 rounded-2xl p-6 md:p-8">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-xs font-bold text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full">Scene 3</span>
+                <span class="text-xs text-amber-500">The Connection</span>
+              </div>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-sm">M</div>
+                <div class="flex-1 h-px bg-gradient-to-r from-purple-400 via-amber-400 to-indigo-400"></div>
+                <div class="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-amber-900" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                  </svg>
+                </div>
+                <div class="flex-1 h-px bg-gradient-to-r from-amber-400 via-amber-400 to-indigo-400"></div>
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">D</div>
+              </div>
+              <p class="text-purple-100 text-base md:text-lg leading-relaxed">
+                Their PAIs connect the dots. David's agent suggests they sync. Maria shares her <span class="text-amber-300 font-semibold">"Clinical Data Analysis"</span> skill &mdash; a reusable capability she has refined over years of work. David adapts it for his market model. Two functions, collaborating in minutes instead of months.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 4: Scorecard Connection -->
+        <div class="relative mb-16 reveal" style="transition-delay:0.2s;">
+          <div class="md:grid md:grid-cols-2 md:gap-12 items-center">
+            <!-- Content - Left -->
+            <div class="md:text-right mb-6 md:mb-0">
+              <div class="scene-card bg-purple-900/40 backdrop-blur-sm border border-purple-700/30 rounded-2xl p-6 md:p-8">
+                <div class="flex items-center gap-2 mb-3 md:justify-end">
+                  <span class="text-xs font-bold text-purple-400 bg-purple-400/10 px-3 py-1 rounded-full">Scene 4</span>
+                  <span class="text-xs text-purple-500">1:45 PM</span>
+                </div>
+                <p class="text-purple-100 text-base md:text-lg leading-relaxed">
+                  Their combined insight automatically connects to the BU Scorecard goal: <span class="text-amber-300 font-semibold">"Accelerate combination therapy launch readiness."</span> Leadership sees the progress update in real-time &mdash; without either of them writing a report. The work <em>is</em> the report.
+                </p>
+              </div>
+            </div>
+            <!-- Visual - Right -->
+            <div class="relative">
+              <div class="absolute left-0 top-6 w-3 h-3 rounded-full bg-amber-400 transform -translate-x-[calc(50%+0.5px)] hidden md:block connection-dot" style="left:-1.5rem; animation-delay: 1.5s;"></div>
+              <div class="bg-purple-800/30 backdrop-blur-sm border border-purple-700/20 rounded-2xl p-6">
+                <!-- Mini scorecard mockup -->
+                <div class="space-y-4">
+                  <div class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <p class="text-white text-sm font-semibold">BU Scorecard Goal</p>
+                  </div>
+                  <p class="text-purple-200 text-sm">Accelerate combination therapy launch readiness</p>
+                  <div class="relative h-2 bg-purple-900/60 rounded-full overflow-hidden">
+                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-400 to-amber-400 rounded-full transition-all duration-1000" style="width: 72%;"></div>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-purple-400">Progress: 72%</span>
+                    <span class="text-amber-400 font-medium">+8% today</span>
+                  </div>
+                  <div class="mt-3 pt-3 border-t border-purple-700/30">
+                    <p class="text-purple-400 text-xs mb-2">Contributing work</p>
+                    <div class="flex items-center gap-2 text-xs text-purple-300">
+                      <div class="w-5 h-5 rounded-full bg-purple-500/40 flex items-center justify-center text-[10px] font-bold text-white">M</div>
+                      <span>RWE subgroup analysis</span>
+                      <span class="text-amber-400 ml-auto">Just now</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-purple-300 mt-1.5">
+                      <div class="w-5 h-5 rounded-full bg-indigo-500/40 flex items-center justify-center text-[10px] font-bold text-white">D</div>
+                      <span>Market access model update</span>
+                      <span class="text-amber-400 ml-auto">Just now</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene 5: VP Dashboard -->
+        <div class="relative reveal" style="transition-delay:0.25s;">
+          <div class="max-w-2xl mx-auto">
+            <div class="absolute left-1/2 top-0 w-3 h-3 rounded-full bg-purple-300 transform -translate-x-1/2 -translate-y-2 hidden md:block connection-dot" style="animation-delay: 2s;"></div>
+            <div class="scene-card bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-sm border border-purple-600/30 rounded-2xl p-6 md:p-8">
+              <div class="flex items-center gap-2 mb-4">
+                <span class="text-xs font-bold text-purple-300 bg-purple-300/10 px-3 py-1 rounded-full">Scene 5</span>
+                <span class="text-xs text-purple-400">3:00 PM</span>
+              </div>
+              <!-- VP Character -->
+              <div class="flex items-center gap-4 mb-5">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-300 to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-purple-400/30">
+                  S
+                </div>
+                <div>
+                  <p class="text-white font-semibold text-lg">Sarah</p>
+                  <p class="text-purple-400 text-sm">VP of Oncology</p>
+                </div>
+              </div>
+              <p class="text-purple-100 text-base md:text-lg leading-relaxed mb-4">
+                Sarah opens her dashboard. She sees not just that progress was made, but <span class="text-white font-semibold">how</span> &mdash; two functions naturally aligning, expertise flowing between them, goals advancing. She adjusts a priority, shifting resources toward the combination therapy. Both PAIs adapt instantly.
+              </p>
+              <div class="bg-purple-950/50 rounded-xl p-4 border border-purple-700/20">
+                <p class="text-purple-400 text-xs font-medium mb-2 uppercase tracking-wider">What Sarah sees</p>
+                <div class="space-y-2 text-sm">
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                    <span class="text-purple-200">Cross-functional alignment between Analytics and Commercial</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+                    <span class="text-purple-200">Skill shared: Clinical Data Analysis methodology</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-purple-400"></div>
+                    <span class="text-purple-200">Launch readiness goal advanced 8% in one day</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════
-       SECTION 2: THREE DIRECTIONS OF INTELLIGENCE
-       ════════════════════════════════════════════ -->
+  <!-- ================================================================
+       SECTION 2: THREE THINGS THAT CREATE THE FLOW
+       ================================================================ -->
   <section class="py-24 md:py-32 bg-slate-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16 reveal">
-        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Three Directions of Intelligence</h2>
-        <p class="text-slate-600 text-lg max-w-2xl mx-auto">Every direction of flow solves a different communication failure in the traditional organization</p>
+        <p class="text-purple-600 font-semibold text-sm tracking-widest uppercase mb-4">The Three Ingredients</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Three Things That Create the Flow</h2>
+        <p class="text-slate-600 text-lg max-w-2xl mx-auto">Intelligence flow is not a system you install. It emerges from three things working together.</p>
       </div>
 
       <div class="grid md:grid-cols-3 gap-8">
-        <!-- Card 1: Upward Flow -->
-        <div class="direction-card bg-white rounded-2xl shadow-lg p-8 reveal" style="transition-delay:0.1s;">
+        <!-- Card 1: Your PAI, Your Expertise -->
+        <div class="ingredient-card bg-white rounded-2xl shadow-lg p-8 reveal" style="transition-delay:0.1s;">
           <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mb-6">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 19V5"/>
-              <path d="M5 12l7-7 7 7"/>
-              <circle cx="8" cy="16" r="1" fill="currentColor" opacity="0.5"/>
-              <circle cx="14" cy="14" r="1" fill="currentColor" opacity="0.5"/>
-              <circle cx="11" cy="10" r="1" fill="currentColor" opacity="0.5"/>
+            <!-- Brain / Person with radiating connections -->
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4.4 3.6-8 8-8s8 3.6 8 8"/>
+              <path d="M12 4V1"/>
+              <path d="M17 5l2-2"/>
+              <path d="M7 5L5 3"/>
+              <path d="M19 10h2"/>
+              <path d="M3 10h2"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-slate-900 mb-3">Upward Flow</h3>
-          <p class="text-purple-600 font-semibold text-sm mb-4">Ground Truth to Leadership</p>
-          <ul class="space-y-3 text-slate-600">
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Progress data flows automatically from project work to leadership dashboards</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>No more manual reporting cycles</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Leadership sees reality, not curated narratives</span>
-            </li>
-          </ul>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Your PAI, Your Expertise</h3>
+          <p class="text-purple-600 font-semibold text-sm mb-4">Your Thinking, Amplified</p>
+          <div class="space-y-3 text-slate-600">
+            <p>Every person's AI is optimized with <strong class="text-slate-800">their</strong> experience, judgment, and methodology. It is not a generic chatbot.</p>
+            <p>It is <strong class="text-slate-800">your</strong> thinking, amplified. It knows how you work, what you have learned, and what matters to you.</p>
+            <p class="text-slate-500 text-sm">It lives in your workflow: chat when you need it, embedded in your tools, proactive when it matters.</p>
+          </div>
         </div>
 
-        <!-- Card 2: Downward Flow -->
-        <div class="direction-card bg-white rounded-2xl shadow-lg p-8 reveal" style="transition-delay:0.2s;">
+        <!-- Card 2: Skills - Shared Expertise in Action -->
+        <div class="ingredient-card bg-white rounded-2xl shadow-lg p-8 reveal" style="transition-delay:0.2s;">
           <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center mb-6">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 5v14"/>
-              <path d="M19 12l-7 7-7-7"/>
-              <circle cx="8" cy="8" r="1" fill="currentColor" opacity="0.5"/>
-              <circle cx="14" cy="10" r="1" fill="currentColor" opacity="0.5"/>
-              <circle cx="11" cy="14" r="1" fill="currentColor" opacity="0.5"/>
+            <!-- Puzzle pieces connecting -->
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 12h4l1.5-2a2 2 0 013 0L13 12h4"/>
+              <path d="M7 12v4l-2 1.5a2 2 0 000 3L7 22h10l1.5-1.5a2 2 0 000-3L17 16v-4"/>
+              <path d="M7 12V8l-2-1.5a2 2 0 010-3L7 2h10l1.5 1.5a2 2 0 010 3L17 8v4"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-slate-900 mb-3">Downward Flow</h3>
-          <p class="text-amber-600 font-semibold text-sm mb-4">Strategy to Execution</p>
-          <ul class="space-y-3 text-slate-600">
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Strategic priorities and context flow to every level</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Contributors understand WHY their work matters</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Dynamic adaptation when priorities shift</span>
-            </li>
-          </ul>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Skills &mdash; Shared Expertise</h3>
+          <p class="text-amber-600 font-semibold text-sm mb-4">How Expertise Moves Between People</p>
+          <div class="space-y-3 text-slate-600">
+            <p>When Maria shares her Clinical Data Analysis skill, she is not sending a document. She is sharing her <strong class="text-slate-800">codified methodology</strong>.</p>
+            <p>Skills are shared tools, connective tissue between teams, and carriers of <strong class="text-slate-800">tribal knowledge</strong>.</p>
+            <p class="text-slate-500 text-sm">When two people use complementary Skills, their work naturally aligns without anyone coordinating it.</p>
+          </div>
         </div>
 
-        <!-- Card 3: Lateral Flow -->
-        <div class="direction-card bg-white rounded-2xl shadow-lg p-8 reveal" style="transition-delay:0.3s;">
+        <!-- Card 3: Scorecard Goals - The Shared Compass -->
+        <div class="ingredient-card bg-white rounded-2xl shadow-lg p-8 reveal" style="transition-delay:0.3s;">
           <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center mb-6">
-            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12h14"/>
-              <path d="M8 8l-4 4 4 4"/>
-              <path d="M16 8l4 4-4 4"/>
-              <circle cx="12" cy="8" r="1" fill="currentColor" opacity="0.5"/>
-              <circle cx="12" cy="16" r="1" fill="currentColor" opacity="0.5"/>
+            <!-- Compass / North Star -->
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="rgba(255,255,255,0.2)" stroke="white"/>
+              <circle cx="12" cy="12" r="1" fill="white"/>
             </svg>
           </div>
-          <h3 class="text-xl font-bold text-slate-900 mb-3">Lateral Flow</h3>
-          <p class="text-indigo-600 font-semibold text-sm mb-4">Breaking Silos</p>
-          <ul class="space-y-3 text-slate-600">
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Cross-functional visibility and collaboration</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Teams discover shared challenges and complementary expertise</span>
-            </li>
-            <li class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-              <span>Organization-wide learning and pattern recognition</span>
-            </li>
-          </ul>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Scorecard Goals</h3>
+          <p class="text-indigo-600 font-semibold text-sm mb-4">The Shared Compass</p>
+          <div class="space-y-3 text-slate-600">
+            <p>Goals from Enterprise down to Individual create a <strong class="text-slate-800">shared frame of reference</strong> for every person in the organization.</p>
+            <p>When everyone's work is connected to the same goal hierarchy, alignment happens <strong class="text-slate-800">automatically</strong>.</p>
+            <p class="text-slate-500 text-sm">Progress rolls up naturally &mdash; not through reports, but through work.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capstone statement -->
+      <div class="mt-16 text-center reveal" style="transition-delay:0.35s;">
+        <div class="inline-block max-w-2xl">
+          <div class="bg-gradient-to-r from-purple-50 via-amber-50 to-purple-50 rounded-2xl p-8 border border-purple-100">
+            <p class="text-xl md:text-2xl font-semibold text-slate-800 leading-relaxed">
+              Put these three together, and intelligence doesn't need to be pushed or pulled. <span class="text-purple-700">It flows.</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════
-       SECTION 3: THE CONTEXT GRAPH
-       ════════════════════════════════════════════ -->
+  <!-- ================================================================
+       SECTION 3: WHAT CHANGES (Before / After - Human Experience)
+       ================================================================ -->
   <section class="py-24 md:py-32 bg-gradient-to-b from-slate-900 via-purple-950 to-indigo-950 overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid lg:grid-cols-2 gap-16 items-center">
-        <!-- Text -->
-        <div class="reveal">
-          <p class="text-amber-400 font-semibold text-sm tracking-widest uppercase mb-4">Emerging Intelligence</p>
-          <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">The Context Graph</h2>
-          <p class="text-purple-200 text-lg leading-relaxed mb-6">
-            As information flows through the system, something remarkable emerges: a living knowledge graph that captures how your organization truly operates.
-          </p>
-          <div class="space-y-4 text-purple-300">
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg bg-purple-800/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
-              </div>
-              <p>Captures the <strong class="text-white">unspoken ways</strong> organizations operate &mdash; tacit knowledge, informal processes, expertise networks</p>
-            </div>
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg bg-purple-800/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
-              </div>
-              <p>Relationships between <strong class="text-white">goals, projects, people, and outcomes</strong> become visible and queryable</p>
-            </div>
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg bg-purple-800/50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20"><path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z"/></svg>
-              </div>
-              <p>The organizational <strong class="text-white">collective intelligence</strong> becomes an asset you can reason about</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Context Graph Visualization -->
-        <div class="reveal flex justify-center" style="transition-delay:0.15s;">
-          <svg id="contextGraphSVG" viewBox="0 0 500 500" class="w-full max-w-lg" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="cgNodeMain" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#c084fc"/>
-                <stop offset="100%" stop-color="#7c3aed"/>
-              </radialGradient>
-              <radialGradient id="cgNodeSecondary" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#a78bfa"/>
-                <stop offset="100%" stop-color="#6d28d9"/>
-              </radialGradient>
-              <filter id="cgGlow">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
-                </feMerge>
-              </filter>
-            </defs>
-
-            <!-- Edges with pulse animation -->
-            <g id="contextEdges" stroke="rgba(168,85,247,0.3)" stroke-width="1.5" fill="none">
-              <line x1="250" y1="180" x2="150" y2="100">
-                <animate attributeName="stroke-opacity" values="0.2;0.6;0.2" dur="3s" repeatCount="indefinite"/>
-              </line>
-              <line x1="250" y1="180" x2="350" y2="120">
-                <animate attributeName="stroke-opacity" values="0.2;0.5;0.2" dur="4s" repeatCount="indefinite"/>
-              </line>
-              <line x1="250" y1="180" x2="380" y2="250">
-                <animate attributeName="stroke-opacity" values="0.3;0.6;0.3" dur="3.5s" repeatCount="indefinite"/>
-              </line>
-              <line x1="250" y1="180" x2="120" y2="260">
-                <animate attributeName="stroke-opacity" values="0.2;0.5;0.2" dur="2.8s" repeatCount="indefinite"/>
-              </line>
-              <line x1="250" y1="180" x2="200" y2="320">
-                <animate attributeName="stroke-opacity" values="0.2;0.6;0.2" dur="3.2s" repeatCount="indefinite"/>
-              </line>
-              <line x1="250" y1="180" x2="320" y2="340">
-                <animate attributeName="stroke-opacity" values="0.3;0.5;0.3" dur="4.2s" repeatCount="indefinite"/>
-              </line>
-              <!-- Cross connections -->
-              <line x1="150" y1="100" x2="350" y2="120" stroke="rgba(251,191,36,0.2)">
-                <animate attributeName="stroke-opacity" values="0.1;0.35;0.1" dur="5s" repeatCount="indefinite"/>
-              </line>
-              <line x1="120" y1="260" x2="200" y2="320" stroke="rgba(251,191,36,0.2)">
-                <animate attributeName="stroke-opacity" values="0.1;0.3;0.1" dur="4.5s" repeatCount="indefinite"/>
-              </line>
-              <line x1="380" y1="250" x2="320" y2="340" stroke="rgba(251,191,36,0.2)">
-                <animate attributeName="stroke-opacity" values="0.15;0.35;0.15" dur="3.8s" repeatCount="indefinite"/>
-              </line>
-              <line x1="150" y1="100" x2="120" y2="260" stroke="rgba(233,213,255,0.15)">
-                <animate attributeName="stroke-opacity" values="0.1;0.25;0.1" dur="6s" repeatCount="indefinite"/>
-              </line>
-              <line x1="350" y1="120" x2="380" y2="250" stroke="rgba(233,213,255,0.15)">
-                <animate attributeName="stroke-opacity" values="0.1;0.3;0.1" dur="5.5s" repeatCount="indefinite"/>
-              </line>
-              <line x1="200" y1="320" x2="320" y2="340" stroke="rgba(233,213,255,0.15)">
-                <animate attributeName="stroke-opacity" values="0.1;0.25;0.1" dur="4s" repeatCount="indefinite"/>
-              </line>
-              <!-- Deeper connections -->
-              <line x1="150" y1="100" x2="80" y2="170">
-                <animate attributeName="stroke-opacity" values="0.15;0.4;0.15" dur="3s" repeatCount="indefinite"/>
-              </line>
-              <line x1="350" y1="120" x2="420" y2="160">
-                <animate attributeName="stroke-opacity" values="0.15;0.35;0.15" dur="3.7s" repeatCount="indefinite"/>
-              </line>
-              <line x1="120" y1="260" x2="80" y2="350">
-                <animate attributeName="stroke-opacity" values="0.1;0.3;0.1" dur="4.3s" repeatCount="indefinite"/>
-              </line>
-              <line x1="380" y1="250" x2="440" y2="330">
-                <animate attributeName="stroke-opacity" values="0.1;0.35;0.1" dur="3.9s" repeatCount="indefinite"/>
-              </line>
-              <line x1="200" y1="320" x2="150" y2="400">
-                <animate attributeName="stroke-opacity" values="0.15;0.35;0.15" dur="4.6s" repeatCount="indefinite"/>
-              </line>
-              <line x1="320" y1="340" x2="370" y2="410">
-                <animate attributeName="stroke-opacity" values="0.1;0.3;0.1" dur="5.2s" repeatCount="indefinite"/>
-              </line>
-              <line x1="80" y1="170" x2="120" y2="260" stroke="rgba(233,213,255,0.1)">
-                <animate attributeName="stroke-opacity" values="0.05;0.2;0.05" dur="6s" repeatCount="indefinite"/>
-              </line>
-              <line x1="420" y1="160" x2="380" y2="250" stroke="rgba(233,213,255,0.1)">
-                <animate attributeName="stroke-opacity" values="0.05;0.2;0.05" dur="5s" repeatCount="indefinite"/>
-              </line>
-            </g>
-
-            <!-- Nodes -->
-            <g filter="url(#cgGlow)">
-              <!-- Central node -->
-              <circle cx="250" cy="180" r="14" fill="url(#cgNodeMain)">
-                <animate attributeName="r" values="14;16;14" dur="3s" repeatCount="indefinite"/>
-              </circle>
-              <!-- Primary ring -->
-              <circle cx="150" cy="100" r="8" fill="url(#cgNodeSecondary)">
-                <animate attributeName="r" values="8;10;8" dur="3.5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="350" cy="120" r="9" fill="url(#cgNodeSecondary)">
-                <animate attributeName="r" values="9;11;9" dur="4s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="380" cy="250" r="8" fill="url(#cgNodeSecondary)">
-                <animate attributeName="r" values="8;10;8" dur="3.2s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="120" cy="260" r="9" fill="url(#cgNodeSecondary)">
-                <animate attributeName="r" values="9;11;9" dur="3.8s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="200" cy="320" r="8" fill="url(#cgNodeSecondary)">
-                <animate attributeName="r" values="8;10;8" dur="4.2s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="320" cy="340" r="7" fill="url(#cgNodeSecondary)">
-                <animate attributeName="r" values="7;9;7" dur="3.6s" repeatCount="indefinite"/>
-              </circle>
-              <!-- Outer ring -->
-              <circle cx="80" cy="170" r="5" fill="#a78bfa" opacity="0.7">
-                <animate attributeName="r" values="5;6.5;5" dur="4.5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="420" cy="160" r="5" fill="#a78bfa" opacity="0.7">
-                <animate attributeName="r" values="5;6.5;5" dur="5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="80" cy="350" r="4" fill="#a78bfa" opacity="0.6">
-                <animate attributeName="r" values="4;5.5;4" dur="4s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="440" cy="330" r="4" fill="#a78bfa" opacity="0.6">
-                <animate attributeName="r" values="4;5.5;4" dur="3.5s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="150" cy="400" r="5" fill="#a78bfa" opacity="0.7">
-                <animate attributeName="r" values="5;6.5;5" dur="4.8s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="370" cy="410" r="4" fill="#a78bfa" opacity="0.6">
-                <animate attributeName="r" values="4;5.5;4" dur="5.2s" repeatCount="indefinite"/>
-              </circle>
-            </g>
-
-            <!-- Labels -->
-            <text x="250" y="215" text-anchor="middle" fill="white" font-size="11" font-weight="600" opacity="0.9">Goals</text>
-            <text x="150" y="85" text-anchor="middle" fill="rgba(233,213,255,0.8)" font-size="9">People</text>
-            <text x="355" y="105" text-anchor="middle" fill="rgba(233,213,255,0.8)" font-size="9">Projects</text>
-            <text x="395" y="238" text-anchor="end" fill="rgba(233,213,255,0.8)" font-size="9">Outcomes</text>
-            <text x="105" y="250" text-anchor="start" fill="rgba(233,213,255,0.8)" font-size="9">Skills</text>
-            <text x="200" y="350" text-anchor="middle" fill="rgba(233,213,255,0.8)" font-size="9">Processes</text>
-            <text x="325" y="365" text-anchor="middle" fill="rgba(233,213,255,0.8)" font-size="9">Insights</text>
-          </svg>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════════════════
-       SECTION 4: HOW IT WORKS IN PRACTICE
-       ════════════════════════════════════════════ -->
-  <section class="py-24 md:py-32 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16 reveal">
-        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">How It Works in Practice</h2>
-        <p class="text-slate-600 text-lg max-w-2xl mx-auto">A real-time intelligence cycle that replaces weeks of manual reporting</p>
+        <p class="text-amber-400 font-semibold text-sm tracking-widest uppercase mb-4">The Human Experience</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">What Changes</h2>
+        <p class="text-purple-300 text-lg max-w-2xl mx-auto">Not a system comparison. A change in how it feels to do your best work.</p>
       </div>
 
-      <!-- Horizontal flow steps -->
-      <div class="grid md:grid-cols-5 gap-6 md:gap-4">
-        <!-- Step 1 -->
-        <div class="reveal relative" style="transition-delay:0.05s;">
-          <div class="flow-step-connector md:pr-6">
-            <div class="bg-purple-50 rounded-2xl p-6 h-full border border-purple-100">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white flex items-center justify-center font-bold text-sm mb-4">1</div>
-              <h4 class="font-semibold text-slate-900 mb-2 text-sm">Update</h4>
-              <p class="text-slate-600 text-sm leading-relaxed">Individual updates project progress through their AI agent</p>
+      <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+        <!-- TODAY Column -->
+        <div class="reveal" style="transition-delay:0.1s;">
+          <div class="mb-8">
+            <span class="inline-block text-sm font-bold text-slate-400 bg-slate-800/50 px-4 py-2 rounded-full uppercase tracking-wider">Today</span>
+          </div>
+          <div class="space-y-6">
+            <div class="comparison-today pl-5 py-3">
+              <p class="text-purple-200/70 leading-relaxed">
+                You finish your analysis. You email it to your manager. They present it in a review meeting. <span class="text-slate-400">Three weeks later,</span> someone in another function discovers it was relevant to their work.
+              </p>
+            </div>
+            <div class="comparison-today pl-5 py-3">
+              <p class="text-purple-200/70 leading-relaxed">
+                You don't know what leadership is prioritizing this quarter until it <span class="text-slate-400">trickles down in a town hall.</span> By then, you've already spent weeks on something that's no longer the top priority.
+              </p>
+            </div>
+            <div class="comparison-today pl-5 py-3">
+              <p class="text-purple-200/70 leading-relaxed">
+                You have expertise no one else knows about <span class="text-slate-400">because there's no way to make it visible.</span> It lives in your head, used only when someone happens to ask.
+              </p>
             </div>
           </div>
         </div>
 
-        <!-- Step 2 -->
-        <div class="reveal relative" style="transition-delay:0.1s;">
-          <div class="flow-step-connector md:pr-6">
-            <div class="bg-purple-50 rounded-2xl p-6 h-full border border-purple-100">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 text-white flex items-center justify-center font-bold text-sm mb-4">2</div>
-              <h4 class="font-semibold text-slate-900 mb-2 text-sm">Contextualize</h4>
-              <p class="text-slate-600 text-sm leading-relaxed">Agent contextualizes the update against team and department goals</p>
+        <!-- WITH THE FLOW Column -->
+        <div class="reveal" style="transition-delay:0.2s;">
+          <div class="mb-8">
+            <span class="inline-block text-sm font-bold text-amber-400 bg-amber-400/10 px-4 py-2 rounded-full uppercase tracking-wider">With the Flow</span>
+          </div>
+          <div class="space-y-6">
+            <div class="comparison-flow pl-5 py-3">
+              <p class="text-purple-100 leading-relaxed">
+                You finish your analysis. It is <span class="text-amber-300 font-medium">already connected to the BU goal.</span> The right people see it immediately. Someone in Commercial reaches out because their PAI flagged the relevance.
+              </p>
+            </div>
+            <div class="comparison-flow pl-5 py-3">
+              <p class="text-purple-100 leading-relaxed">
+                Leadership priorities <span class="text-amber-300 font-medium">flow to you in context</span> &mdash; your PAI tells you exactly how a priority shift affects YOUR work, your deadlines, your deliverables.
+              </p>
+            </div>
+            <div class="comparison-flow pl-5 py-3">
+              <p class="text-purple-100 leading-relaxed">
+                Your expertise is <span class="text-amber-300 font-medium">codified in Skills</span> that others can find, use, and build on. Your methodology outlives your memory. Others benefit from your years of experience.
+              </p>
             </div>
           </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="reveal relative" style="transition-delay:0.15s;">
-          <div class="flow-step-connector md:pr-6">
-            <div class="bg-amber-50 rounded-2xl p-6 h-full border border-amber-100">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center font-bold text-sm mb-4">3</div>
-              <h4 class="font-semibold text-slate-900 mb-2 text-sm">Aggregate</h4>
-              <p class="text-slate-600 text-sm leading-relaxed">Intelligence Hub aggregates and surfaces patterns</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 4 -->
-        <div class="reveal relative" style="transition-delay:0.2s;">
-          <div class="flow-step-connector md:pr-6">
-            <div class="bg-amber-50 rounded-2xl p-6 h-full border border-amber-100">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center font-bold text-sm mb-4">4</div>
-              <h4 class="font-semibold text-slate-900 mb-2 text-sm">Insight</h4>
-              <p class="text-slate-600 text-sm leading-relaxed">Leadership dashboard updates in real-time with actionable insights</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 5 -->
-        <div class="reveal" style="transition-delay:0.25s;">
-          <div class="bg-gradient-to-br from-purple-50 to-amber-50 rounded-2xl p-6 h-full border border-purple-100">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-amber-500 text-white flex items-center justify-center font-bold text-sm mb-4">5</div>
-            <h4 class="font-semibold text-slate-900 mb-2 text-sm">Propagate</h4>
-            <p class="text-slate-600 text-sm leading-relaxed">Leadership adjusts priorities; changes propagate instantly to all levels</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Flow summary -->
-      <div class="mt-12 text-center reveal" style="transition-delay:0.3s;">
-        <div class="inline-flex items-center gap-3 bg-purple-50 rounded-full px-6 py-3 border border-purple-100">
-          <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-          <span class="text-purple-700 font-medium text-sm">The entire cycle happens continuously and in real-time &mdash; no waiting for the next status meeting</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════
+  <!-- ================================================================
+       SECTION 4: WHAT LEADERSHIP SEES
+       ================================================================ -->
+  <section class="py-24 md:py-32 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16 reveal">
+        <p class="text-purple-600 font-semibold text-sm tracking-widest uppercase mb-4">The Leadership View</p>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">What Leadership Sees</h2>
+        <p class="text-slate-600 text-lg max-w-2xl mx-auto">The natural result when intelligence flows. Not because people filed reports &mdash; because work IS the report.</p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-12 items-start">
+        <!-- Benefits List -->
+        <div class="reveal" style="transition-delay:0.1s;">
+          <div class="space-y-6">
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0 mt-1">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-slate-900 mb-1">Real-time visibility into progress</h4>
+                <p class="text-slate-600">Not because people filed reports, but because the work itself generates the signal. Every contribution is automatically connected to the goal it advances.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0 mt-1">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-slate-900 mb-1">Cross-functional alignment, organically</h4>
+                <p class="text-slate-600">No more coordination meetings to discover overlapping work. When Maria's analysis impacts David's model, the system surfaces it. Functions align because the intelligence flows between them.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+              <div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-slate-900 mb-1">Adjust priorities, see the impact cascade</h4>
+                <p class="text-slate-600">When a VP shifts a priority, every PAI in the organization adapts. People see how the change affects their work. Leadership sees who is affected and how the organization responds.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Mockup -->
+        <div class="reveal" style="transition-delay:0.2s;">
+          <div class="bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-700/50">
+            <!-- Dashboard header -->
+            <div class="bg-slate-800 px-6 py-4 flex items-center justify-between border-b border-slate-700/50">
+              <div class="flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+              </div>
+              <p class="text-slate-400 text-xs font-medium">Oncology Leadership Dashboard</p>
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-green-400 dash-pulse"></div>
+                <span class="text-green-400 text-xs">Live</span>
+              </div>
+            </div>
+
+            <!-- Dashboard body -->
+            <div class="p-6 space-y-5">
+              <!-- Goal Progress Row -->
+              <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3">Strategic Goals &mdash; Q1 2026</p>
+                <div class="space-y-3">
+                  <div class="bg-slate-800/60 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-white text-sm font-medium">Combination therapy launch readiness</span>
+                      <span class="text-amber-400 text-xs font-semibold">72%</span>
+                    </div>
+                    <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-gradient-to-r from-purple-500 to-amber-400 rounded-full" style="width: 72%;"></div>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                      <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+                      <span class="text-green-400 text-xs">+8% today via cross-functional collaboration</span>
+                    </div>
+                  </div>
+                  <div class="bg-slate-800/60 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-white text-sm font-medium">Patient stratification model v2</span>
+                      <span class="text-purple-400 text-xs font-semibold">58%</span>
+                    </div>
+                    <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full" style="width: 58%;"></div>
+                    </div>
+                  </div>
+                  <div class="bg-slate-800/60 rounded-lg p-3">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="text-white text-sm font-medium">RWE evidence generation pipeline</span>
+                      <span class="text-purple-400 text-xs font-semibold">41%</span>
+                    </div>
+                    <div class="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div class="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full" style="width: 41%;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Cross-functional Activity -->
+              <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3">Cross-Functional Activity</p>
+                <div class="grid grid-cols-3 gap-3">
+                  <div class="bg-slate-800/60 rounded-lg p-3 text-center">
+                    <p class="text-2xl font-bold text-white">12</p>
+                    <p class="text-slate-400 text-xs mt-1">Skills shared this week</p>
+                  </div>
+                  <div class="bg-slate-800/60 rounded-lg p-3 text-center">
+                    <p class="text-2xl font-bold text-amber-400">7</p>
+                    <p class="text-slate-400 text-xs mt-1">Cross-team connections</p>
+                  </div>
+                  <div class="bg-slate-800/60 rounded-lg p-3 text-center">
+                    <p class="text-2xl font-bold text-green-400">94%</p>
+                    <p class="text-slate-400 text-xs mt-1">Goal alignment score</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Trend -->
+              <div>
+                <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-3">Intelligence Flow Trend</p>
+                <div class="bg-slate-800/60 rounded-lg p-4">
+                  <svg viewBox="0 0 400 80" class="w-full" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Grid lines -->
+                    <line x1="0" y1="20" x2="400" y2="20" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+                    <line x1="0" y1="40" x2="400" y2="40" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+                    <line x1="0" y1="60" x2="400" y2="60" stroke="rgba(148,163,184,0.1)" stroke-width="1"/>
+                    <!-- Trend line -->
+                    <polyline points="0,65 40,60 80,55 120,58 160,48 200,42 240,38 280,30 320,25 360,18 400,12" fill="none" stroke="url(#trendGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <!-- Area fill -->
+                    <linearGradient id="trendGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#a855f7"/>
+                      <stop offset="100%" stop-color="#fbbf24"/>
+                    </linearGradient>
+                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="rgba(168,85,247,0.3)"/>
+                      <stop offset="100%" stop-color="rgba(168,85,247,0)"/>
+                    </linearGradient>
+                    <polygon points="0,65 40,60 80,55 120,58 160,48 200,42 240,38 280,30 320,25 360,18 400,12 400,80 0,80" fill="url(#areaGrad)"/>
+                    <!-- Current point -->
+                    <circle cx="400" cy="12" r="4" fill="#fbbf24" class="dash-pulse"/>
+                  </svg>
+                  <div class="flex justify-between mt-2">
+                    <span class="text-slate-500 text-xs">Week 1</span>
+                    <span class="text-amber-400 text-xs font-medium">This week</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================
        BOTTOM NAVIGATION
-       ════════════════════════════════════════════ -->
+       ================================================================ -->
   <section class="py-16 bg-slate-50 border-t border-slate-200">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex flex-col sm:flex-row justify-between items-center gap-6">
@@ -813,23 +741,23 @@
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════
+  <!-- ================================================================
        FOOTER
-       ════════════════════════════════════════════ -->
+       ================================================================ -->
   <footer class="py-8 text-center text-slate-400 text-sm border-t border-slate-200">
     AstraZeneca Intelligence Flow &bull; Confidential
   </footer>
 
-  <!-- ════════════════════════════════════════════
+  <!-- ================================================================
        JAVASCRIPT: ANIMATIONS & INTERACTIONS
-       ════════════════════════════════════════════ -->
+       ================================================================ -->
   <script>
-    // ── Mobile menu toggle ──
+    // -- Mobile menu toggle --
     document.getElementById('mobileMenuBtn').addEventListener('click', () => {
       document.getElementById('mobileMenu').classList.toggle('hidden');
     });
 
-    // ── Scroll reveal ──
+    // -- Scroll reveal --
     document.addEventListener('DOMContentLoaded', () => {
       const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -842,52 +770,56 @@
       document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
 
-    // ── Hero animated background lines ──
+    // -- Hero animated background (organic flowing lines) --
     (function initHeroLines() {
       const container = document.getElementById('heroLines');
       const svgNS = 'http://www.w3.org/2000/svg';
       const svg = document.createElementNS(svgNS, 'svg');
       svg.setAttribute('viewBox', '0 0 1200 800');
       svg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-      svg.style.opacity = '0.15';
+      svg.style.opacity = '0.12';
 
-      const lineCount = 18;
-      for (let i = 0; i < lineCount; i++) {
-        const line = document.createElementNS(svgNS, 'line');
-        const x1 = Math.random() * 1200;
-        const y1 = Math.random() * 800;
-        const angle = Math.random() * Math.PI * 2;
-        const len = 100 + Math.random() * 300;
-        line.setAttribute('x1', x1);
-        line.setAttribute('y1', y1);
-        line.setAttribute('x2', x1 + Math.cos(angle) * len);
-        line.setAttribute('y2', y1 + Math.sin(angle) * len);
-        line.setAttribute('stroke', 'rgba(196,181,253,0.6)');
-        line.setAttribute('stroke-width', '1');
+      // Create flowing curved paths instead of straight lines
+      const pathCount = 14;
+      for (let i = 0; i < pathCount; i++) {
+        const path = document.createElementNS(svgNS, 'path');
+        const startX = Math.random() * 1200;
+        const startY = Math.random() * 800;
+        const cp1x = startX + (Math.random() - 0.5) * 400;
+        const cp1y = startY + (Math.random() - 0.5) * 400;
+        const cp2x = startX + (Math.random() - 0.5) * 600;
+        const cp2y = startY + (Math.random() - 0.5) * 600;
+        const endX = startX + (Math.random() - 0.5) * 500;
+        const endY = startY + (Math.random() - 0.5) * 500;
+
+        path.setAttribute('d', `M${startX},${startY} C${cp1x},${cp1y} ${cp2x},${cp2y} ${endX},${endY}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(196,181,253,0.5)');
+        path.setAttribute('stroke-width', '1');
 
         const anim = document.createElementNS(svgNS, 'animate');
         anim.setAttribute('attributeName', 'stroke-opacity');
-        anim.setAttribute('values', '0.1;0.6;0.1');
-        anim.setAttribute('dur', (3 + Math.random() * 4) + 's');
+        anim.setAttribute('values', '0.1;0.5;0.1');
+        anim.setAttribute('dur', (4 + Math.random() * 5) + 's');
         anim.setAttribute('repeatCount', 'indefinite');
         anim.setAttribute('begin', (Math.random() * 3) + 's');
-        line.appendChild(anim);
-        svg.appendChild(line);
+        path.appendChild(anim);
+        svg.appendChild(path);
       }
 
-      // Add subtle dots at intersections
-      for (let i = 0; i < 12; i++) {
+      // Golden connection dots
+      for (let i = 0; i < 10; i++) {
         const circle = document.createElementNS(svgNS, 'circle');
         circle.setAttribute('cx', Math.random() * 1200);
         circle.setAttribute('cy', Math.random() * 800);
-        circle.setAttribute('r', 2 + Math.random() * 2);
-        circle.setAttribute('fill', 'rgba(251,191,36,0.4)');
+        circle.setAttribute('r', 2 + Math.random() * 3);
+        circle.setAttribute('fill', 'rgba(251,191,36,0.5)');
         const anim = document.createElementNS(svgNS, 'animate');
         anim.setAttribute('attributeName', 'opacity');
-        anim.setAttribute('values', '0;0.6;0');
-        anim.setAttribute('dur', (2 + Math.random() * 3) + 's');
+        anim.setAttribute('values', '0;0.7;0');
+        anim.setAttribute('dur', (3 + Math.random() * 4) + 's');
         anim.setAttribute('repeatCount', 'indefinite');
-        anim.setAttribute('begin', (Math.random() * 4) + 's');
+        anim.setAttribute('begin', (Math.random() * 5) + 's');
         circle.appendChild(anim);
         svg.appendChild(circle);
       }
@@ -895,182 +827,28 @@
       container.appendChild(svg);
     })();
 
-    // ── Hub-and-Spoke Particle Animation System ──
-    (function initParticles() {
-      const svgNS = 'http://www.w3.org/2000/svg';
-      const container = document.getElementById('particleContainer');
-      const hubX = 400, hubY = 400;
-
-      // Node positions
-      const nodes = [
-        { x: 400, y: 100, label: 'Enterprise Leadership' },
-        { x: 660, y: 250, label: 'Business Units' },
-        { x: 660, y: 550, label: 'Functions' },
-        { x: 400, y: 700, label: 'Departments' },
-        { x: 140, y: 550, label: 'Teams' },
-        { x: 140, y: 250, label: 'Individual Contributors' },
-      ];
-
-      // Lateral connections (between adjacent nodes)
-      const lateralPaths = [
-        { from: 0, to: 1 }, { from: 1, to: 2 }, { from: 2, to: 3 },
-        { from: 3, to: 4 }, { from: 4, to: 5 }, { from: 5, to: 0 },
-      ];
-
-      // Particle class
-      class Particle {
-        constructor(type, spokeIndex, delay) {
-          this.type = type; // 'upward', 'downward', 'lateral'
-          this.spokeIndex = spokeIndex;
-          this.progress = 0;
-          this.speed = 0.003 + Math.random() * 0.004;
-          this.delay = delay;
-          this.active = false;
-          this.opacity = 0;
-          this.size = 2 + Math.random() * 3;
-
-          // Color based on type
-          if (type === 'upward') {
-            this.color = `rgba(192, 132, 252, ${0.6 + Math.random() * 0.4})`; // purple
-          } else if (type === 'downward') {
-            this.color = `rgba(251, 191, 36, ${0.6 + Math.random() * 0.4})`; // gold
-          } else {
-            this.color = `rgba(233, 213, 255, ${0.5 + Math.random() * 0.3})`; // light purple
+    // -- Animate scorecard progress bar on scroll --
+    (function initProgressAnimation() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const bars = entry.target.querySelectorAll('[style*="width"]');
+            bars.forEach((bar, i) => {
+              const targetWidth = bar.style.width;
+              bar.style.width = '0%';
+              setTimeout(() => {
+                bar.style.transition = 'width 1.5s ease-out';
+                bar.style.width = targetWidth;
+              }, 200 + i * 150);
+            });
+            observer.unobserve(entry.target);
           }
+        });
+      }, { threshold: 0.3 });
 
-          // Create SVG element
-          this.el = document.createElementNS(svgNS, 'circle');
-          this.el.setAttribute('r', this.size);
-          this.el.setAttribute('fill', this.color);
-          this.el.setAttribute('opacity', '0');
-          container.appendChild(this.el);
-        }
-
-        getPosition() {
-          const t = this.progress;
-          if (this.type === 'upward') {
-            // From node toward hub
-            const node = nodes[this.spokeIndex];
-            return {
-              x: node.x + (hubX - node.x) * t,
-              y: node.y + (hubY - node.y) * t,
-            };
-          } else if (this.type === 'downward') {
-            // From hub toward node
-            const node = nodes[this.spokeIndex];
-            return {
-              x: hubX + (node.x - hubX) * t,
-              y: hubY + (node.y - hubY) * t,
-            };
-          } else {
-            // Lateral: between two adjacent nodes
-            const conn = lateralPaths[this.spokeIndex];
-            const from = nodes[conn.from];
-            const to = nodes[conn.to];
-            // Use a slight curve via the midpoint pushed outward
-            const mx = (from.x + to.x) / 2;
-            const my = (from.y + to.y) / 2;
-            const dx = mx - hubX;
-            const dy = my - hubY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            const offset = 40;
-            const cx = mx + (dx / dist) * offset;
-            const cy = my + (dy / dist) * offset;
-            // Quadratic bezier
-            const u = 1 - t;
-            return {
-              x: u * u * from.x + 2 * u * t * cx + t * t * to.x,
-              y: u * u * from.y + 2 * u * t * cy + t * t * to.y,
-            };
-          }
-        }
-
-        update(elapsed) {
-          if (elapsed < this.delay) return;
-          this.active = true;
-          this.progress += this.speed;
-
-          // Fade in/out
-          if (this.progress < 0.1) {
-            this.opacity = this.progress / 0.1;
-          } else if (this.progress > 0.9) {
-            this.opacity = (1 - this.progress) / 0.1;
-          } else {
-            this.opacity = 1;
-          }
-
-          if (this.progress >= 1) {
-            this.progress = 0;
-            this.delay = elapsed + Math.random() * 2000;
-            this.active = false;
-            this.opacity = 0;
-            this.speed = 0.003 + Math.random() * 0.004;
-          }
-
-          const pos = this.getPosition();
-          this.el.setAttribute('cx', pos.x);
-          this.el.setAttribute('cy', pos.y);
-          this.el.setAttribute('opacity', this.opacity * 0.85);
-        }
-      }
-
-      // Create particles
-      const particles = [];
-
-      // Upward particles (purple) - more from bottom nodes
-      for (let i = 0; i < 6; i++) {
-        for (let j = 0; j < 4; j++) {
-          particles.push(new Particle('upward', i, j * 800 + Math.random() * 600));
-        }
-      }
-
-      // Downward particles (gold) - more from top nodes
-      for (let i = 0; i < 6; i++) {
-        for (let j = 0; j < 3; j++) {
-          particles.push(new Particle('downward', i, j * 1000 + Math.random() * 800));
-        }
-      }
-
-      // Lateral particles (light) - between adjacent nodes
-      for (let i = 0; i < 6; i++) {
-        for (let j = 0; j < 2; j++) {
-          particles.push(new Particle('lateral', i, j * 1200 + Math.random() * 1000));
-        }
-      }
-
-      // Add glow trail circles (larger, more transparent particles trailing main ones)
-      for (let i = 0; i < 6; i++) {
-        // Extra upward glow
-        const pUp = new Particle('upward', i, Math.random() * 3000);
-        pUp.size = 5 + Math.random() * 3;
-        pUp.speed = 0.002 + Math.random() * 0.002;
-        pUp.el.setAttribute('r', pUp.size);
-        pUp.el.setAttribute('fill', 'rgba(192,132,252,0.2)');
-        particles.push(pUp);
-
-        // Extra downward glow
-        const pDown = new Particle('downward', i, Math.random() * 3000);
-        pDown.size = 5 + Math.random() * 3;
-        pDown.speed = 0.002 + Math.random() * 0.002;
-        pDown.el.setAttribute('r', pDown.size);
-        pDown.el.setAttribute('fill', 'rgba(251,191,36,0.15)');
-        particles.push(pDown);
-      }
-
-      // Animation loop
-      let startTime = null;
-      function animate(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-
-        for (const p of particles) {
-          p.update(elapsed);
-        }
-
-        requestAnimationFrame(animate);
-      }
-
-      requestAnimationFrame(animate);
+      // Observe the dashboard mockup
+      const dashboard = document.querySelector('.bg-slate-900.rounded-2xl');
+      if (dashboard) observer.observe(dashboard);
     })();
   </script>
 </body>
