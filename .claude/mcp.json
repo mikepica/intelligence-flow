@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "scorecard": {
+      "command": "npx",
+      "args": ["tsx", "scorecard-mcp/src/index.ts"],
+      "env": {
+        "DATABASE_URL": "${DATABASE_URL}"
+      }
+    }
+  }
+}
