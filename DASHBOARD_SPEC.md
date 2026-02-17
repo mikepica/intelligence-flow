@@ -1,6 +1,6 @@
-# Riddle Enterprises Dashboard Specification
+# Vantage Biopharma Dashboard Specification
 
-A single-page dashboard demonstrating how Scorecards and Skills work together, powered by live data from the Neon PostgreSQL database via the Scorecard API.
+A single-page dashboard (`demo.html`) demonstrating how Scorecards and Skills work together, powered by live data from the Neon PostgreSQL database via the Scorecard API. The **CEO Goal View** (`goals.html`) serves as the landing page with a three-column pillar layout.
 
 ---
 
@@ -11,12 +11,12 @@ A single-page dashboard demonstrating how Scorecards and Skills work together, p
 ```
 +------------------------------+------------------------------+
 |  1. Org Hierarchy            |  2. Goal Cascade             |
-|     (tree view)              |     (flow diagram)           |
+|     (tree view, 18 nodes)    |     (flow diagram, 21 goals) |
 |                              |                              |
 +------------------------------+------------------------------+
 |  3. Skill Cards              |  4. Skill Chain Pipeline     |
-|     (riddle-maker +          |     (Riddler -> Sphinx       |
-|      riddle-deepener)        |      with data flow)         |
+|     (3x2 grid, 6 skills)    |     (Chain A/B toggle,       |
+|                              |      3-step pipeline)        |
 +------------------------------+------------------------------+
 |  5. Live Scorecard           |  6. Output Timeline          |
 |     (RAG, progress, qtrly)   |     (chronological outputs)  |
@@ -55,8 +55,12 @@ Grid definition:
 | RAG Amber | `#f59e0b` | At-risk status |
 | RAG Red | `#ef4444` | Off-track status |
 | RAG Not Started | `#6b7280` | Not yet begun |
-| Riddler color | `#a855f7` | The Riddler's elements |
-| Sphinx color | `#06b6d4` | The Sphinx's elements |
+| Elena color | `#fb7185` | Dr. Elena Vasquez (rose) |
+| Marcus color | `#38bdf8` | Marcus Chen (sky) |
+| Sarah color | `#fbbf24` | Sarah Okonkwo (amber) |
+| James color | `#4ade80` | Dr. James Park (green) |
+| Amara color | `#a78bfa` | Dr. Amara Osei (violet) |
+| Richard color | `#fb923c` | Dr. Richard Stein (orange) |
 
 ---
 
@@ -69,9 +73,10 @@ Grid definition:
 **Visual elements:**
 - Indented tree with connector lines (vertical + horizontal CSS borders)
 - Each node shows: icon by org_level, name, owner badge
-- Level icons: Enterprise = building, Department = folder, Individual = person
+- Level icons: Enterprise = building, Business Unit = globe, Function = folder, Department = team, Individual = person
 - Active node highlighted with left border accent color
-- Node color: Enterprise = accent, Department = muted accent, Individual = Riddler/Sphinx color based on name
+- Node color: Enterprise = accent, BU/Function = muted accent, Individual = persona color based on name
+- 18 total org units in the hierarchy
 
 **Interactivity:**
 - Click a node to select it
@@ -94,7 +99,7 @@ children[]           -> nested indent
 
 **Grid position:** Row 1, Column 2
 
-**API endpoint:** `GET /api/goal-tree/:orgId` (orgId from Panel 1 selection)
+**API endpoint:** `GET /api/goal-tree/:orgId`
 
 **Visual elements:**
 - Vertical flow diagram: Pillar at top, Program at bottom
@@ -103,9 +108,10 @@ children[]           -> nested indent
 - Card contents: goal name, goal_level badge, owner, status indicator
 - Alignment strength shown as line thickness (1.0 = solid, 0.8 = slightly thinner)
 - Goal level badges: Pillar = indigo, Category = blue, Goal = teal, Program = green
+- 21 total goal items across the hierarchy
 
 **Interactivity:**
-- Click a Program card to select it, updating Panel 5 (Live Scorecard) and Panel 7 (Progress)
+- Click a Program card to select it, updating Panel 5 (Live Scorecard) and Panel 6 (Timeline)
 - Hover on alignment lines shows alignment notes
 - Default: full cascade visible from Pillar to Program
 
@@ -129,21 +135,21 @@ alignment_strength   -> line thickness
 **API endpoint:** `GET /api/skills`
 
 **Visual elements:**
-- Two cards side by side (or stacked if narrow): Riddle Maker and Riddle Deepener
+- 3x2 grid of skill cards (6 skills total): MSL Insight Reporter, Med Affairs Aggregator, Commercial Strategist, CRA Site Monitor, Patient Safety Evaluator, Medical Director Reviewer
 - Each card shows:
-  - Person name with colored avatar circle (Riddler=purple, Sphinx=cyan)
+  - Person name with colored avatar circle (persona colors defined above)
   - Skill name as heading
   - Skill type badge (personal)
   - Description text
-  - Input spec rendered as labeled fields (e.g., "Input: topic (string)")
-  - Output spec rendered as labeled fields (e.g., "Output: riddle, answer, difficulty")
-  - Output count badge (e.g., "3 outputs")
-  - Chain indicator: arrow showing chain_next/chain_prev from metadata
+  - Input spec rendered as labeled fields
+  - Output spec rendered as labeled fields
+  - Output count badge
+  - Chain indicator: arrow showing chain membership (Chain A or Chain B)
 
 **Interactivity:**
 - Click a skill card to filter Panel 6 (Output Timeline) by that skill
 - Hover on input/output spec fields shows full JSON schema tooltip
-- Chain arrow is always visible showing Riddler -> Sphinx flow
+- Chain indicator links to Panel 4 (Skill Chain) and highlights the relevant chain
 
 **Data mapping:**
 ```
@@ -153,7 +159,7 @@ skills.skill_type    -> badge
 skills.description   -> body text
 skills.input_spec    -> input fields display
 skills.output_spec   -> output fields display
-skills.metadata      -> chain arrow (chain_next / chain_prev)
+skills.metadata      -> chain arrow (chain membership)
 output_count         -> count badge
 ```
 
@@ -164,37 +170,38 @@ output_count         -> count badge
 **Grid position:** Row 2, Column 2
 
 **API endpoints:**
-- `GET /api/skill-outputs?person_name=The Riddler&limit=1` (latest Riddler output)
-- `GET /api/skill-outputs?person_name=The Sphinx&limit=1` (latest Sphinx output)
-- `GET /api/feedback?requested_by=The Riddler&requested_from=The Sphinx&status=completed`
+- `GET /api/skill-outputs?person_name=<name>&limit=1` (latest output per persona)
+- `GET /api/feedback?requested_by=<name>&status=completed`
 
 **Visual elements:**
-- Horizontal pipeline visualization: Left = Riddler, Right = Sphinx
-- Three stages connected by animated arrows:
-  1. **Input** (left): Topic bubble showing the input topic
-  2. **Riddler Output** (center-left): Card showing basic riddle, answer, difficulty
-  3. **Feedback Arrow** (center): Arrow with feedback status badge (pending/completed)
-  4. **Sphinx Output** (center-right): Card showing 3-layer riddle with collapsible layers
-  5. **Result** (right): Final answer with difficulty upgrade indicator
-- Pipeline shows the most recent completed chain
+- Toggle button at top: **Chain A** (KOL Insights) | **Chain B** (AE Escalation)
+- Horizontal pipeline visualization showing 3-step chain:
+  - **Chain A:** Elena (MSL Insight Reporter) > Marcus (Med Affairs Aggregator) > Sarah (Commercial Strategist)
+  - **Chain B:** James (CRA Site Monitor) > Amara (Patient Safety Evaluator) > Richard (Medical Director Reviewer)
+- Three stages connected by animated arrows with data labels between nodes
+- Pipeline shows the most recent completed chain output
 - If no completed chain exists, show the pipeline skeleton with "awaiting data" placeholders
 
 **Interactivity:**
-- Click Riddler output card to expand full riddle text
-- Click Sphinx output card to expand/collapse individual layers (Surface, Hidden, Deep)
+- Toggle between Chain A and Chain B
+- Click a node to expand the latest output for that persona
 - Click feedback arrow to show feedback request/response detail
 - Animated pulse on the "active" stage if there's an in-progress item
 
 **Data mapping:**
 ```
-Riddler output_data.topic     -> input bubble
-Riddler output_data.riddle    -> basic riddle card
-Riddler output_data.answer    -> answer label
-Riddler output_data.difficulty -> difficulty badge
-feedback status               -> arrow badge color
-feedback response_text        -> arrow tooltip
-Sphinx output_data.layers[]   -> layer cards (Surface, Hidden, Deep)
-Sphinx output_data.final_answer -> result label
+Chain A:
+  Elena output_data    -> step 1 card
+  Marcus output_data   -> step 2 card
+  Sarah output_data    -> step 3 card
+
+Chain B:
+  James output_data    -> step 1 card
+  Amara output_data    -> step 2 card
+  Richard output_data  -> step 3 card
+
+feedback status        -> arrow badge color
+feedback response_text -> arrow tooltip
 ```
 
 ---
@@ -206,7 +213,7 @@ Sphinx output_data.final_answer -> result label
 **API endpoint:** `GET /api/scorecard`
 
 **Visual elements:**
-- Program header: name + org unit
+- Program header: name + org unit (one of 4 programs: AE-SENTINEL, VBP-142 Phase II Readiness, KOL-INSIGHTS, LAUNCH-READY)
 - Large RAG status indicator: colored circle with status text (Red/Amber/Green/Not Started/Complete)
 - Progress bar: horizontal bar filled to percent_complete, color matches RAG
 - Quarterly objectives table:
@@ -215,8 +222,6 @@ Sphinx output_data.final_answer -> result label
   - Current quarter highlighted with accent border
   - Empty quarters show "--"
 - Metrics section: key-value display from progress.metrics JSON
-  - riddles_created / target shown as "0 / 10"
-  - pipeline_status shown as badge
 - Last updated timestamp + author
 
 **Interactivity:**
@@ -250,17 +255,17 @@ objectives.target_unit      -> unit label
 - Vertical timeline, newest at top
 - Each entry is a card on the timeline with:
   - Timestamp (relative: "2 hours ago")
-  - Person avatar (colored circle: purple=Riddler, cyan=Sphinx)
+  - Person avatar (colored circle using persona colors)
   - Person name + skill name
   - Output summary text
-  - Expandable output_data preview (first 2 lines of riddle text)
+  - Expandable output_data preview (first 2 lines)
   - Feedback badge if feedback_requests exist:
     - Pending = amber dot
     - Completed = green check
     - None = no badge
 - Timeline line connects entries vertically
 - Alternating slight background shade for readability
-- Empty state: "No skill outputs yet. Run the riddle-maker skill to begin."
+- Empty state: "No skill outputs yet. Run a skill to begin."
 
 **Interactivity:**
 - Click an entry to expand full output_data JSON (pretty-printed)
@@ -290,6 +295,7 @@ feedback_requests[].response_text -> feedback tooltip
 | Click program card | 2. Goal Cascade | 5. Live Scorecard | Shows scorecard for selected program |
 | Click skill card | 3. Skill Cards | 6. Output Timeline | Filters timeline to that skill's outputs |
 | Click skill card | 3. Skill Cards | 4. Skill Chain | Highlights that skill's stage in pipeline |
+| Toggle chain | 4. Skill Chain | 4. Skill Chain | Switches between Chain A and Chain B |
 
 ---
 

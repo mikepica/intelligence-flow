@@ -1,10 +1,29 @@
 // ═══════════════════════════════════════════════════════════════
-// Riddle Enterprises Dashboard — demo.js
+// Vantage Biopharma Dashboard — demo.js
 // Fetches live data from scorecard-api and renders 6 panels
 // with interactive elements, animations, and drill-down details
 // ═══════════════════════════════════════════════════════════════
 
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = window.location.hostname === "localhost" ? "http://localhost:3001/api" : "/api";
+
+// ── URL Param handling ──────────────────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+const selectedProgram = urlParams.get("program") || null;
+
+// ── Persona Colors ──────────────────────────────────────────
+const personaColors = {
+  "Dr. Elena Vasquez": { bg: "bg-blue-500/5", border: "border-blue-500/20", hoverBorder: "hover:border-blue-500/40", text: "text-blue-400", iconBg: "bg-blue-500/20", codeTxt: "text-blue-300/80", symbol: "E", role: "MSL Field Rep", borderT: "border-blue-500/10" },
+  "Marcus Chen": { bg: "bg-indigo-500/5", border: "border-indigo-500/20", hoverBorder: "hover:border-indigo-500/40", text: "text-indigo-400", iconBg: "bg-indigo-500/20", codeTxt: "text-indigo-300/80", symbol: "M", role: "Med Affairs Ops", borderT: "border-indigo-500/10" },
+  "Sarah Okonkwo": { bg: "bg-purple-500/5", border: "border-purple-500/20", hoverBorder: "hover:border-purple-500/40", text: "text-purple-400", iconBg: "bg-purple-500/20", codeTxt: "text-purple-300/80", symbol: "S", role: "Commercial Strategist", borderT: "border-purple-500/10" },
+  "Dr. James Park": { bg: "bg-emerald-500/5", border: "border-emerald-500/20", hoverBorder: "hover:border-emerald-500/40", text: "text-emerald-400", iconBg: "bg-emerald-500/20", codeTxt: "text-emerald-300/80", symbol: "J", role: "CRA Site Monitor", borderT: "border-emerald-500/10" },
+  "Dr. Amara Osei": { bg: "bg-amber-500/5", border: "border-amber-500/20", hoverBorder: "hover:border-amber-500/40", text: "text-amber-400", iconBg: "bg-amber-500/20", codeTxt: "text-amber-300/80", symbol: "A", role: "Patient Safety", borderT: "border-amber-500/10" },
+  "Dr. Richard Stein": { bg: "bg-red-500/5", border: "border-red-500/20", hoverBorder: "hover:border-red-500/40", text: "text-red-400", iconBg: "bg-red-500/20", codeTxt: "text-red-300/80", symbol: "R", role: "Medical Director", borderT: "border-red-500/10" },
+};
+
+// Chain definitions
+const chainA = ["Dr. Elena Vasquez", "Marcus Chen", "Sarah Okonkwo"];
+const chainB = ["Dr. James Park", "Dr. Amara Osei", "Dr. Richard Stein"];
+let currentChain = "a";
 
 // ── Helpers ──────────────────────────────────────────────────
 
@@ -39,97 +58,85 @@ function ragColor(status) {
 
 async function apiFetch(path) {
   const res = await fetch(API_BASE_URL + path);
-  if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
+  if (!res.ok) throw new Error("API " + path + ": " + res.status);
   return res.json();
 }
 
 function showError(el, msg) {
-  el.innerHTML = `
-    <div class="flex items-center gap-3 text-red-400 text-sm py-4">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
-      </svg>
-      <span>${esc(msg)}</span>
-      <button onclick="location.reload()" class="ml-auto text-xs text-purple-400 hover:text-purple-300 underline">Retry</button>
-    </div>`;
+  el.innerHTML =
+    '<div class="flex items-center gap-3 text-red-400 text-sm py-4">' +
+    '<svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+    '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>' +
+    "</svg>" +
+    "<span>" + esc(msg) + "</span>" +
+    '<button onclick="location.reload()" class="ml-auto text-xs text-purple-400 hover:text-purple-300 underline">Retry</button>' +
+    "</div>";
+}
+
+function flattenGoals(nodes) {
+  let result = [];
+  for (const n of nodes) {
+    result.push(n);
+    if (n.children) result = result.concat(flattenGoals(n.children));
+  }
+  return result;
 }
 
 
 // ═══════════════════════════════════════════════════════════════
-// 1. ORG TREE — Interactive collapsible hierarchy
+// 1. BREADCRUMB — Show org hierarchy path in header
 // ═══════════════════════════════════════════════════════════════
 
-async function renderOrgTree() {
-  const el = document.getElementById("org-tree-content");
+async function renderBreadcrumb() {
+  const el = document.getElementById("header-breadcrumb");
+  if (!el) return;
   try {
     const { data } = await apiFetch("/org-tree");
-
-    // Find Riddle Enterprises subtree
-    const riddle = data.find(n => n.name === "Riddle Enterprises") || data[0];
-    if (!riddle) { el.innerHTML = "<p class='text-sm text-slate-500'>No org data</p>"; return; }
-
-    // Count nodes
-    function countNodes(node) { return 1 + (node.children || []).reduce((s, c) => s + countNodes(c), 0); }
-    const total = countNodes(riddle);
-    document.getElementById("org-badge").textContent = total + " units";
-
-    function renderNode(node, depth = 0) {
-      const hasChildren = node.children && node.children.length > 0;
-      const indent = depth * 20;
-      const levelColors = {
-        Enterprise: "text-purple-400", Business_Unit: "text-indigo-400", Function: "text-blue-400",
-        Department: "text-cyan-400", Sub_Department: "text-teal-400", Individual: "text-green-400"
-      };
-      const colorClass = levelColors[node.org_level] || "text-slate-400";
-      const id = "org-" + node.id;
-
-      return `
-        <div class="org-node" style="padding-left:${indent}px">
-          <div class="group flex items-center gap-2 py-1.5 px-2 -mx-2 rounded-lg cursor-pointer hover:bg-slate-800/60 transition-colors"
-               onclick="toggleOrgDetail(${node.id})" data-org-id="${node.id}">
-            ${hasChildren
-              ? `<button onclick="event.stopPropagation(); toggleOrgChildren('${id}')" class="org-toggle w-4 h-4 flex items-center justify-center text-slate-500 hover:text-slate-300 transition-transform">
-                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                 </button>`
-              : `<span class="w-4 h-4 flex items-center justify-center"><span class="w-1.5 h-1.5 rounded-full ${colorClass.replace('text-', 'bg-')} opacity-60"></span></span>`
-            }
-            <span class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">${esc(node.name)}</span>
-            <span class="text-[10px] ${colorClass} opacity-70 ml-auto">${esc((node.org_level || "").replace("_", " "))}</span>
-          </div>
-          <div id="org-detail-${node.id}" class="hidden ml-6 mb-2 p-3 bg-slate-800/40 rounded-lg border border-slate-700/30 text-xs text-slate-400 animate-fadeIn">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="font-medium text-slate-300">${esc(node.name)}</span>
-              <span class="px-1.5 py-0.5 rounded ${colorClass} bg-slate-800 text-[10px]">${esc((node.org_level || "").replace("_", " "))}</span>
-            </div>
-            ${node.description ? `<p class="mb-1">${esc(node.description)}</p>` : ""}
-            ${node.owner ? `<p>Owner: <span class="text-slate-300">${esc(node.owner)}</span></p>` : ""}
-          </div>
-          <div id="${id}-children" class="org-children">
-            ${(node.children || []).map(c => renderNode(c, depth + 1)).join("")}
-          </div>
-        </div>`;
+    const flat = [];
+    function flatten(nodes, parentId) {
+      for (const n of nodes) {
+        n._parentId = parentId;
+        flat.push(n);
+        if (n.children) flatten(n.children, n.id);
+      }
     }
+    flatten(data, null);
 
-    el.innerHTML = renderNode(riddle);
+    if (selectedProgram) {
+      // Get the goal tree to find the program's org_unit_id
+      const vantage = flat.find(function(n) { return n.name === "Vantage Biopharma"; }) || flat[0];
+      if (!vantage) return;
+      const goalRes = await apiFetch("/goal-tree/" + vantage.id);
+      const allGoals = [];
+      function flatGoals(nodes) {
+        for (const n of nodes) { allGoals.push(n); if (n.children) flatGoals(n.children); }
+      }
+      flatGoals(goalRes.data.goals || []);
+      const prog = allGoals.find(function(g) { return g.name === selectedProgram && g.goal_level === "Program"; });
+      if (prog) {
+        const orgNode = flat.find(function(o) { return o.id === prog.org_unit_id; });
+        if (orgNode) {
+          const chain = [];
+          let current = orgNode;
+          while (current) {
+            chain.unshift(current.name);
+            var pid = current._parentId;
+            if (!pid) break;
+            current = flat.find(function(o) { return o.id === pid; });
+          }
+          el.innerHTML = chain.map(function(name, i) {
+            var isLast = i === chain.length - 1;
+            return '<span class="' + (isLast ? 'text-slate-300' : 'text-slate-500') + '">' + esc(name) + '</span>';
+          }).join(' <span class="text-slate-600 mx-1">&rsaquo;</span> ');
+        }
+      }
+    } else {
+      el.innerHTML = '<span class="text-slate-500">Vantage Biopharma</span> <span class="text-slate-600 mx-1">&rsaquo;</span> <span class="text-slate-300">Enterprise Overview</span>';
+    }
   } catch (err) {
-    showError(el, "Could not load org tree: " + err.message);
+    console.warn("Breadcrumb error:", err);
   }
 }
-
-window.toggleOrgChildren = function(id) {
-  const children = document.getElementById(id + "-children");
-  const parent = children?.previousElementSibling?.previousElementSibling;
-  if (!children) return;
-  const isHidden = children.style.display === "none";
-  children.style.display = isHidden ? "" : "none";
-  const toggle = parent?.closest(".org-node")?.querySelector(".org-toggle svg");
-  if (toggle) toggle.style.transform = isHidden ? "rotate(90deg)" : "";
-};
-
-window.toggleOrgDetail = function(id) {
-  const detail = document.getElementById("org-detail-" + id);
-  if (detail) detail.classList.toggle("hidden");
-};
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -139,75 +146,72 @@ window.toggleOrgDetail = function(id) {
 async function renderGoalCascade() {
   const el = document.getElementById("goal-cascade-content");
   try {
-    // Get the Riddle Enterprises org tree first to find the ID
     const orgRes = await apiFetch("/org-tree");
-    const riddle = orgRes.data.find(n => n.name === "Riddle Enterprises");
-    if (!riddle) { el.innerHTML = "<p class='text-sm text-slate-500'>No org data found</p>"; return; }
+    const vantage = orgRes.data.find(n => n.name === "Vantage Biopharma");
+    if (!vantage) { el.innerHTML = "<p class='text-sm text-slate-500'>No org data found</p>"; return; }
 
-    const { data } = await apiFetch("/goal-tree/" + riddle.id);
+    const { data } = await apiFetch("/goal-tree/" + vantage.id);
     const goals = data.goals || [];
-    document.getElementById("goal-badge").textContent = flattenGoals(goals).length + " goals";
+    const allFlat = flattenGoals(goals);
+    document.getElementById("goal-badge").textContent = allFlat.length + " goals";
 
-    function flattenGoals(nodes) {
-      let result = [];
-      for (const n of nodes) {
-        result.push(n);
-        if (n.children) result = result.concat(flattenGoals(n.children));
-      }
-      return result;
-    }
-
-    // Render goals as vertical cascade with connector lines
     const levelColors = {
-      Pillar: { border: "border-purple-500/40", bg: "bg-purple-500/5", badge: "bg-purple-500/15 text-purple-400", icon: "text-purple-400" },
-      Category: { border: "border-indigo-500/40", bg: "bg-indigo-500/5", badge: "bg-indigo-500/15 text-indigo-400", icon: "text-indigo-400" },
-      Goal: { border: "border-amber-500/40", bg: "bg-amber-500/5", badge: "bg-amber-500/15 text-amber-400", icon: "text-amber-400" },
-      Program: { border: "border-emerald-500/40", bg: "bg-emerald-500/5", badge: "bg-emerald-500/15 text-emerald-400", icon: "text-emerald-400" },
+      Pillar: { border: "border-purple-500/40", bg: "bg-purple-500/5", badge: "bg-purple-500/15 text-purple-400" },
+      Category: { border: "border-indigo-500/40", bg: "bg-indigo-500/5", badge: "bg-indigo-500/15 text-indigo-400" },
+      Goal: { border: "border-amber-500/40", bg: "bg-amber-500/5", badge: "bg-amber-500/15 text-amber-400" },
+      Program: { border: "border-emerald-500/40", bg: "bg-emerald-500/5", badge: "bg-emerald-500/15 text-emerald-400" },
     };
 
-    function renderGoalNode(node) {
+    function renderCascadeNode(node, isHighlighted) {
       const c = levelColors[node.goal_level] || levelColors.Goal;
-      const hasChildren = node.children && node.children.length > 0;
+      const isProgram = node.goal_level === "Program";
       const alignment = (data.alignments || []).find(a => a.child_goal_id === node.id);
 
-      return `
-        <div class="goal-cascade-node">
-          <div class="group ${c.bg} ${c.border} border rounded-lg p-3 cursor-pointer hover:border-opacity-80 transition-all ${node.goal_level === 'Program' ? 'ring-1 ring-emerald-500/10' : ''}"
-               onclick="toggleGoalDetail(${node.id})">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-[10px] font-medium px-1.5 py-0.5 rounded ${c.badge}">${esc(node.goal_level)}</span>
-              ${alignment ? `<span class="text-[10px] text-slate-500 ml-auto" title="Alignment: ${esc(alignment.alignment_type)}">
-                ${Number(alignment.alignment_strength) * 100}% aligned
-              </span>` : ""}
-            </div>
-            <p class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">${esc(node.name)}</p>
-            ${node.goal_level === "Program" ? `<p class="text-xs text-slate-400 mt-1">Q1 2026 -- 10 riddles target</p>` : ""}
-            ${node.owner && node.goal_level !== "Program" ? `<p class="text-[11px] text-slate-500 mt-1">${esc(node.owner)}</p>` : ""}
-          </div>
-          <div id="goal-detail-${node.id}" class="hidden mx-2 p-3 bg-slate-800/30 rounded-b-lg border-x border-b border-slate-700/20 text-xs text-slate-400">
-            ${node.description ? `<p class="mb-1">${esc(node.description)}</p>` : ""}
-            ${node.org_unit_name ? `<p>Org: <span class="text-slate-300">${esc(node.org_unit_name)}</span></p>` : ""}
-            ${node.weight ? `<p>Weight: <span class="text-slate-300">${node.weight}</span></p>` : ""}
-          </div>
-          ${hasChildren ? `
-            <div class="flex justify-center py-1.5">
-              <div class="w-px h-4 bg-gradient-to-b from-slate-600 to-slate-700"></div>
-            </div>
-            <div class="space-y-0">
-              ${node.children.map(c => renderGoalNode(c)).join(`
-                <div class="flex justify-center py-1.5">
-                  <div class="w-px h-4 bg-gradient-to-b from-slate-600 to-slate-700"></div>
-                </div>
-              `)}
-            </div>
-          ` : ""}
-        </div>`;
+      return '<div class="goal-cascade-node">' +
+        '<div class="group ' + c.bg + ' ' + c.border + ' border rounded-lg p-3 ' +
+          (isProgram ? 'ring-1 ring-emerald-500/20 ' : '') +
+          (isHighlighted ? '' : 'opacity-60 ') +
+          'cursor-pointer hover:border-opacity-80 transition-all" ' +
+          'onclick="toggleGoalDetail(' + node.id + ')">' +
+          '<div class="flex items-center gap-2 mb-1">' +
+            '<span class="text-[10px] font-medium px-1.5 py-0.5 rounded ' + c.badge + '">' + esc(node.goal_level) + '</span>' +
+            (alignment ? '<span class="text-[10px] text-slate-500 ml-auto">' + (Number(alignment.alignment_strength) * 100) + '% aligned</span>' : '') +
+          '</div>' +
+          '<p class="text-sm font-medium text-white group-hover:text-purple-300 transition-colors">' + esc(node.name) + '</p>' +
+          (node.owner ? '<p class="text-[11px] text-slate-500 mt-1">' + esc(node.owner) + '</p>' : '') +
+        '</div>' +
+        '<div id="goal-detail-' + node.id + '" class="hidden mx-2 p-3 bg-slate-800/30 rounded-b-lg border-x border-b border-slate-700/20 text-xs text-slate-400">' +
+          (node.description ? '<p class="mb-1">' + esc(node.description) + '</p>' : '') +
+          (node.org_unit_name ? '<p>Org: <span class="text-slate-300">' + esc(node.org_unit_name) + '</span></p>' : '') +
+        '</div>' +
+      '</div>';
     }
+
+    var connector = '<div class="flex justify-center py-1"><div class="flex flex-col items-center"><div class="w-px h-3 bg-gradient-to-b from-slate-600 to-slate-700"></div><svg class="w-3 h-3 text-slate-600 -mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg></div></div>';
 
     if (goals.length === 0) {
       el.innerHTML = "<p class='text-sm text-slate-500'>No goals found</p>";
+    } else if (selectedProgram) {
+      // Find the program and build the ancestor chain
+      var prog = allFlat.find(function(g) { return g.name === selectedProgram && g.goal_level === "Program"; });
+      if (prog) {
+        var chain = [];
+        var current = prog;
+        while (current) {
+          chain.unshift(current);
+          var parentId = current.parent_id;
+          current = parentId ? allFlat.find(function(g) { return g.id === parentId; }) : null;
+        }
+        el.innerHTML = chain.map(function(g) {
+          return renderCascadeNode(g, true);
+        }).join(connector);
+      } else {
+        // Program not found in tree, show pillars
+        el.innerHTML = goals.map(function(g) { return renderCascadeNode(g, true); }).join(connector);
+      }
     } else {
-      el.innerHTML = goals.map(g => renderGoalNode(g)).join("");
+      // No program selected — show all pillars
+      el.innerHTML = goals.map(function(g) { return renderCascadeNode(g, true); }).join(connector);
     }
   } catch (err) {
     showError(el, "Could not load goals: " + err.message);
@@ -230,20 +234,28 @@ async function renderScorecard() {
   const headerRag = document.getElementById("header-rag");
   try {
     const { data } = await apiFetch("/scorecard");
-    // Find the Riddlemethis program
-    const program = data.find(p => p.program_name === "Riddlemethis") || data[0];
+    // Find the selected program or first available
+    const program = selectedProgram
+      ? (data.find(p => p.program_name === selectedProgram) || data[0])
+      : data[0];
     if (!program) { el.innerHTML = "<p class='text-sm text-slate-500'>No scorecard data</p>"; return; }
+
+    // Update subtitle
+    const subtitle = document.getElementById("header-subtitle");
+    if (subtitle) {
+      subtitle.innerHTML = "Scorecard Dashboard &mdash; " + esc(program.program_name) + " &mdash; Q1 2026";
+    }
 
     const progress = program.progress;
     const metrics = progress?.metrics || {};
     const ragStatus = progress?.rag_status || "Not Started";
-    const ragLabel = ragStatus.replace("_", " ").replace("Not Started", "Not Started");
+    const ragLabel = ragStatus.replace("_", " ");
     const rc = ragColor(ragStatus);
     const pct = Number(progress?.percent_complete || 0);
 
     // Update header RAG
-    ragBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${rc.dot} rag-pulse"></span><span>${esc(ragLabel)}</span>`;
-    ragBadge.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${rc.bg} ${rc.text}`;
+    ragBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full ' + rc.dot + ' rag-pulse"></span><span>' + esc(ragLabel) + "</span>";
+    ragBadge.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium " + rc.bg + " " + rc.text;
     headerRag.innerHTML = ragBadge.innerHTML;
     headerRag.className = ragBadge.className;
 
@@ -262,16 +274,6 @@ async function renderScorecard() {
           <span class="w-7 font-semibold text-slate-300 flex-shrink-0">${q}</span>
           <div class="flex-1">
             <p class="text-slate-300 leading-relaxed">${esc(obj.objective_text)}</p>
-            ${q === "Q1" ? `<div class="flex items-center gap-4 mt-1.5">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-green-400/60"></span>
-                <span class="text-[10px] text-slate-400">Riddler: ${metrics.riddles_created || 0} created</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-amber-400/60"></span>
-                <span class="text-[10px] text-slate-400">Sphinx: ${metrics.riddles_deepened || 0} deepened</span>
-              </div>
-            </div>` : ""}
             <div class="obj-detail hidden mt-1 text-[11px] text-slate-500">
               ${obj.target_value ? `Target: <span class="text-slate-400">${obj.target_value} ${esc(obj.target_unit || "")}</span>` : ""}
               ${obj.status ? ` &middot; Status: <span class="text-slate-400">${esc(obj.status)}</span>` : ""}
@@ -321,7 +323,7 @@ async function renderScorecard() {
 
 
 // ═══════════════════════════════════════════════════════════════
-// 4. SKILLS REGISTRY — Interactive cards with I/O specs
+// 4. SKILLS REGISTRY — Interactive cards with persona colors
 // ═══════════════════════════════════════════════════════════════
 
 async function renderSkills() {
@@ -330,24 +332,10 @@ async function renderSkills() {
     const { data } = await apiFetch("/skills");
     document.getElementById("skills-badge").textContent = data.length + " skills";
 
-    const chainIcons = {
-      "The Riddler": `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-      "The Sphinx": `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>`,
-    };
-
-    // Character color mapping per DESIGN_SPEC
-    const charColors = {
-      "The Riddler": { bg: "bg-green-500/5", border: "border-green-500/20", hoverBorder: "hover:border-green-500/40", text: "text-green-400", iconBg: "bg-green-500/20", codeTxt: "text-green-300/80", symbol: "?", role: "Creative Lead", borderT: "border-green-500/10" },
-      "The Sphinx": { bg: "bg-amber-500/5", border: "border-amber-500/20", hoverBorder: "hover:border-amber-500/40", text: "text-amber-400", iconBg: "bg-amber-500/20", codeTxt: "text-amber-300/80", symbol: "\u25B2", role: "Sr. Enigmatologist", borderT: "border-amber-500/10" },
-    };
-
     const inputKeys = (spec) => spec?.properties ? Object.keys(spec.properties).join(", ") : "--";
 
-    el.innerHTML = `<div class="grid grid-cols-2 gap-3">${data.map(s => {
-      const meta = s.metadata || {};
-      const chainNext = meta.chain_next;
-      const chainPrev = meta.chain_prev;
-      const cc = charColors[s.person_name] || charColors["The Riddler"];
+    el.innerHTML = `<div class="grid grid-cols-3 gap-3">${data.map(s => {
+      const cc = personaColors[s.person_name] || { bg: "bg-slate-500/5", border: "border-slate-500/20", hoverBorder: "hover:border-slate-500/40", text: "text-slate-400", iconBg: "bg-slate-500/20", codeTxt: "text-slate-300/80", symbol: "?", role: "Unknown", borderT: "border-slate-500/10" };
 
       return `
         <div class="${cc.bg} border ${cc.border} rounded-lg p-3.5 cursor-pointer ${cc.hoverBorder} transition-all"
@@ -402,269 +390,456 @@ window.toggleSkillDetail = function(id) {
 
 
 // ═══════════════════════════════════════════════════════════════
-// 5. SKILL CHAIN — Animated pipeline with real data flow
+// 5. SKILL CHAIN — Animated pipeline with Chain A/B toggle
 // ═══════════════════════════════════════════════════════════════
+
+// Program-to-chain mapping: determine which chain a program uses
+// Chain A (KOL Insights): Elena, Marcus, Sarah → KOL-INSIGHTS, LAUNCH-READY
+// Chain B (AE Escalation): James, Amara, Richard → AE-SENTINEL, VBP-142 Phase II Readiness
+const programChainMap = {
+  "KOL-INSIGHTS": "a",
+  "LAUNCH-READY": "a",
+  "AE-SENTINEL": "b",
+  "VBP-142 Phase II Readiness": "b",
+};
 
 async function renderSkillChain() {
   const el = document.getElementById("skill-chain-content");
   try {
-    const [outputsRes, feedbackRes] = await Promise.all([
+    const [outputsRes, feedbackRes, skillsRes] = await Promise.all([
       apiFetch("/skill-outputs"),
       apiFetch("/feedback"),
+      apiFetch("/skills"),
     ]);
     const outputs = outputsRes.data || [];
     const feedback = feedbackRes.data || [];
+    const allSkills = skillsRes.data || [];
 
-    // Group outputs by person
-    const riddlerOutputs = outputs.filter(o => o.person_name === "The Riddler");
-    const sphinxOutputs = outputs.filter(o => o.person_name === "The Sphinx");
-
-    // Build chain visualization
-    const hasData = riddlerOutputs.length > 0 || sphinxOutputs.length > 0;
-
-    el.innerHTML = `
-      <!-- Pipeline header -->
-      <div class="flex items-center gap-2 mb-4">
-        <div class="flex items-center gap-3 flex-1">
-          <div class="flex items-center gap-2 px-3 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            <div>
-              <p class="text-xs font-semibold text-white">The Riddler</p>
-              <p class="text-[10px] text-purple-400">${riddlerOutputs.length} riddle${riddlerOutputs.length !== 1 ? "s" : ""}</p>
-            </div>
-          </div>
-
-          <div class="flex-1 h-1 chain-flow-line rounded-full relative">
-            ${feedback.length > 0 ? `<div class="absolute -top-3 left-1/2 -translate-x-1/2">
-              <span class="text-[9px] text-purple-400 bg-slate-900 px-1.5 py-0.5 rounded">${feedback.length} review${feedback.length !== 1 ? "s" : ""}</span>
-            </div>` : ""}
-          </div>
-
-          <div class="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-            <div>
-              <p class="text-xs font-semibold text-white">The Sphinx</p>
-              <p class="text-[10px] text-amber-400">${sphinxOutputs.length} deepened</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Chain entries -->
-      <div id="chain-entries" class="space-y-3 max-h-[220px] overflow-y-auto timeline-scroll">
-        ${hasData ? renderChainEntries(riddlerOutputs, sphinxOutputs, feedback) : `
-          <div class="text-center py-6">
-            <p class="text-sm text-slate-500 mb-3">Pipeline ready. No riddles generated yet.</p>
-            <button onclick="runDemoFlow()" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/15 border border-purple-500/30 rounded-lg text-sm text-purple-400 hover:bg-purple-500/25 hover:text-purple-300 transition-all">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              View Data Flow Demo
-            </button>
-          </div>
-        `}
-      </div>`;
-
-    if (hasData) {
-      // Also render the demo button if there's data
-      const entries = document.getElementById("chain-entries");
-      entries.insertAdjacentHTML("afterend", `
-        <div class="mt-3 pt-3 border-t border-slate-800">
-          <button onclick="runDemoFlow()" class="w-full flex items-center justify-center gap-2 py-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-slate-800/40 rounded-lg transition-all">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-            Replay Flow Animation
-          </button>
-        </div>
-      `);
+    // Auto-select chain based on program
+    if (selectedProgram && programChainMap[selectedProgram]) {
+      currentChain = programChainMap[selectedProgram];
     }
+
+    // Update chain badge
+    var chainLabel = currentChain === "a" ? "KOL Insights" : "AE Escalation";
+    var chainBadge = document.getElementById("chain-badge");
+    if (chainBadge) chainBadge.textContent = chainLabel + " pipeline";
+
+    renderChainView(el, outputs, feedback);
   } catch (err) {
     showError(el, "Could not load skill chain: " + err.message);
   }
 }
 
-function renderChainEntries(riddlerOutputs, sphinxOutputs, feedback) {
-  // Pair riddles with their deepened versions via feedback
-  const entries = [];
-  for (const ro of riddlerOutputs) {
-    const fb = feedback.find(f => f.skill_output?.id === ro.id);
-    const deepened = sphinxOutputs.find(so => {
-      const od = so.output_data || {};
-      const roData = ro.output_data || {};
-      return od.original_riddle === roData.riddle || od.original_answer === roData.answer;
+function renderChainView(el, outputs, feedback) {
+  const chain = currentChain === "a" ? chainA : chainB;
+  const chainLabel = currentChain === "a" ? "KOL Insights" : "AE Escalation";
+  const chainColor = currentChain === "a" ? { flow: "from-blue-500/40 via-indigo-500/40 to-purple-500/40", flowLine: "#818cf8" } : { flow: "from-emerald-500/40 via-amber-500/40 to-red-500/40", flowLine: "#f59e0b" };
+
+  // Build chain toggle + pipeline
+  let html = '';
+
+  // Toggle buttons
+  html += '<div class="flex rounded-lg overflow-hidden border border-slate-700/50 mb-4">';
+  html += '<button onclick="switchChain(\'a\')" class="chain-toggle px-3 py-1.5 text-xs font-medium ' + (currentChain === "a" ? "bg-blue-500/20 text-blue-400" : "text-slate-400 hover:text-white") + ' transition-colors border-r border-slate-700/50">Chain A: KOL Insights</button>';
+  html += '<button onclick="switchChain(\'b\')" class="chain-toggle px-3 py-1.5 text-xs font-medium ' + (currentChain === "b" ? "bg-emerald-500/20 text-emerald-400" : "text-slate-400 hover:text-white") + ' transition-colors">Chain B: AE Escalation</button>';
+  html += '</div>';
+
+  // Show which programs this chain serves
+  var chainPrograms = currentChain === "a" ? ["KOL-INSIGHTS", "LAUNCH-READY"] : ["AE-SENTINEL", "VBP-142 Phase II Readiness"];
+  html += '<div class="flex flex-wrap gap-1.5 mb-3">';
+  chainPrograms.forEach(function(progName) {
+    var isSelected = progName === selectedProgram;
+    html += '<a href="demo.html?program=' + encodeURIComponent(progName) + '" class="text-[10px] px-2 py-0.5 rounded-full border ' +
+      (isSelected ? 'bg-purple-500/20 border-purple-500/30 text-purple-400 font-medium' : 'border-slate-700/50 text-slate-500 hover:text-slate-300 hover:border-slate-600') +
+      ' transition-colors">' + esc(progName) + '</a>';
+  });
+  html += '</div>';
+
+  // 3-step pipeline visualization
+  html += '<div class="flex items-center gap-2 mb-4">';
+  chain.forEach(function(person, i) {
+    const cc = personaColors[person];
+    html += '<div class="flex items-center gap-2 px-3 py-2 ' + cc.bg + ' border ' + cc.border + ' rounded-lg flex-1">';
+    html += '<span class="w-6 h-6 rounded-full ' + cc.iconBg + ' flex items-center justify-center text-[10px] ' + cc.text + ' font-bold">' + cc.symbol + '</span>';
+    html += '<div class="min-w-0">';
+    html += '<p class="text-xs font-semibold text-white truncate">' + esc(person) + '</p>';
+    html += '<p class="text-[10px] ' + cc.text + '">' + cc.role + '</p>';
+    html += '</div>';
+    html += '</div>';
+
+    if (i < chain.length - 1) {
+      html += '<div class="flex-shrink-0 w-8 h-1 chain-flow-line rounded-full"></div>';
+    }
+  });
+  html += '</div>';
+
+  // Chain data entries
+  const chainOutputs = outputs.filter(function(o) { return chain.includes(o.person_name); });
+  const hasData = chainOutputs.length > 0;
+
+  if (hasData) {
+    html += '<div id="chain-entries" class="space-y-3 max-h-[180px] overflow-y-auto timeline-scroll">';
+    chainOutputs.forEach(function(o, i) {
+      const cc = personaColors[o.person_name] || personaColors["Dr. Elena Vasquez"];
+      html += '<div class="bg-slate-800/30 rounded-lg border border-slate-700/20 p-3 cursor-pointer hover:border-slate-600/40 transition-all"' +
+        ' onclick="this.querySelector(\'.chain-detail\').classList.toggle(\'hidden\')" style="animation-delay: ' + (i * 0.15) + 's">';
+      html += '<div class="flex items-center gap-2 mb-1">';
+      html += '<span class="w-5 h-5 rounded-full ' + cc.iconBg + ' flex items-center justify-center text-[9px] ' + cc.text + ' font-bold">' + cc.symbol + '</span>';
+      html += '<span class="text-[10px] font-medium ' + cc.text + '">' + esc(o.person_name) + '</span>';
+      html += '<span class="text-[10px] text-slate-500">' + esc(o.skill_name) + '</span>';
+      html += '<span class="text-[10px] text-slate-600 ml-auto">' + timeAgo(o.created_at) + '</span>';
+      html += '</div>';
+      html += '<p class="text-xs text-slate-300 leading-relaxed">' + esc(o.output_summary || "Skill output") + '</p>';
+      html += '<div class="chain-detail hidden mt-2 p-2 bg-slate-800/40 rounded text-[10px] text-slate-400">';
+      html += '<pre class="overflow-x-auto whitespace-pre-wrap">' + esc(JSON.stringify(o.output_data || {}, null, 2)) + '</pre>';
+      html += '</div>';
+      html += '</div>';
     });
-    entries.push({ riddle: ro, feedback: fb, deepened });
+    html += '</div>';
+  } else {
+    html += '<div class="text-center py-6">';
+    html += '<p class="text-sm text-slate-500 mb-3">Pipeline ready. No outputs yet.</p>';
+    html += '</div>';
   }
 
-  if (entries.length === 0) return "<p class='text-sm text-slate-500 text-center py-4'>No chain data</p>";
+  // Demo button
+  const demoFn = currentChain === "a" ? "runDemoFlowA" : "runDemoFlowB";
+  const demoLabel = currentChain === "a" ? "View KOL Insights Flow" : "View AE Escalation Flow";
+  html += '<div class="mt-3 pt-3 border-t border-slate-800">';
+  html += '<button onclick="' + demoFn + '()" class="w-full flex items-center justify-center gap-2 py-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-slate-800/40 rounded-lg transition-all">';
+  html += '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+  html += demoLabel;
+  html += '</button>';
+  html += '</div>';
 
-  return entries.map((e, i) => {
-    const rd = e.riddle.output_data || {};
-    const dd = e.deepened?.output_data || {};
-    return `
-      <div class="chain-entry bg-slate-800/30 rounded-lg border border-slate-700/20 p-3 cursor-pointer hover:border-slate-600/40 transition-all"
-           onclick="this.querySelector('.chain-detail').classList.toggle('hidden')" style="animation-delay: ${i * 0.15}s">
-        <div class="flex items-center gap-2 mb-2">
-          <span class="text-[10px] font-medium text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded">Step 1</span>
-          <span class="text-[10px] text-slate-500">${esc(rd.topic || "riddle")}</span>
-          ${e.feedback ? `<span class="text-[10px] text-green-400 ml-auto">reviewed</span>` : ""}
-          ${e.deepened ? `<span class="text-[10px] text-amber-400 ml-auto">3-layer</span>` : ""}
-        </div>
-        <p class="text-xs text-slate-300 italic leading-relaxed">"${esc((rd.riddle || "").slice(0, 150))}${(rd.riddle || "").length > 150 ? "..." : ""}"</p>
-        <div class="chain-detail hidden mt-3 space-y-3 border-t border-slate-700/20 pt-3 text-xs">
-          <div>
-            <p class="text-slate-500 font-medium mb-1">Answer</p>
-            <p class="text-slate-300">${esc(rd.answer)}</p>
-            <p class="text-slate-500 mt-1">Difficulty: <span class="text-slate-400">${esc(rd.difficulty)}</span></p>
-          </div>
-          ${e.feedback ? `<div>
-            <p class="text-slate-500 font-medium mb-1">Sphinx Feedback</p>
-            <p class="text-green-400/80">${esc((e.feedback.response_text || "").slice(0, 200))}</p>
-          </div>` : ""}
-          ${dd.layers ? `<div>
-            <p class="text-slate-500 font-medium mb-1">Deepened Layers</p>
-            ${dd.layers.map((l, li) => `
-              <div class="ml-2 mb-2 pl-2 border-l border-amber-500/20">
-                <p class="text-[10px] text-amber-400 font-medium">Layer ${l.level || li + 1}: ${esc(l.name || "")}</p>
-                <p class="text-slate-400 italic">${esc((l.riddle || "").slice(0, 120))}...</p>
-                ${l.hint ? `<p class="text-slate-500 mt-0.5">Hint: ${esc(l.hint)}</p>` : ""}
-              </div>
-            `).join("")}
-            <p class="text-amber-400/80 font-medium">Final answer: ${esc(dd.final_answer)}</p>
-          </div>` : ""}
-        </div>
-      </div>`;
-  }).join("");
+  el.innerHTML = html;
 }
 
-// Demo flow animation — simulates data flowing through the pipeline
-window.runDemoFlow = function() {
+window.switchChain = function(chain) {
+  currentChain = chain;
+  // Re-render the chain panel
   const el = document.getElementById("skill-chain-content");
-  const container = el.querySelector("#chain-entries") || el;
-
-  // Create animated demo overlay
-  const demo = document.createElement("div");
-  demo.id = "demo-overlay";
-  demo.className = "fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center";
-  demo.innerHTML = `
-    <div class="max-w-2xl w-full mx-4">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-bold text-white">Skill Chain Pipeline Demo</h3>
-        <button onclick="document.getElementById('demo-overlay').remove()" class="text-slate-400 hover:text-white text-sm">&times; Close</button>
-      </div>
-      <div class="space-y-4" id="demo-steps">
-        <div class="demo-step opacity-0 transform translate-y-4 transition-all duration-500" data-step="1">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-purple-400">Step 1: The Riddler receives a topic</p>
-              <p class="text-xs text-slate-500">Input: { topic: "time" }</p>
-            </div>
-          </div>
-          <div class="ml-11 p-3 bg-slate-800/60 rounded-lg border border-purple-500/20 text-sm text-slate-300 italic">
-            Processing prompt through Riddle Maker skill...
-          </div>
-        </div>
-        <div class="flex justify-center">
-          <div class="demo-arrow opacity-0 transition-all duration-300" data-step="2">
-            <div class="w-1 h-8 bg-gradient-to-b from-purple-500/40 to-purple-500/0 mx-auto"></div>
-            <svg class="w-4 h-4 text-purple-400 mx-auto -mt-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-          </div>
-        </div>
-        <div class="demo-step opacity-0 transform translate-y-4 transition-all duration-500" data-step="3">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-              <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-green-400">Step 2: Riddle created, feedback requested</p>
-              <p class="text-xs text-slate-500">Output recorded to skill_outputs + feedback_request sent</p>
-            </div>
-          </div>
-          <div class="ml-11 p-3 bg-slate-800/60 rounded-lg border border-green-500/20 text-sm text-slate-300 italic">
-            "I fly without wings, I cry without eyes. Wherever I go, darkness follows me. What am I?" -- answer: A cloud
-          </div>
-        </div>
-        <div class="flex justify-center">
-          <div class="demo-arrow opacity-0 transition-all duration-300" data-step="4">
-            <div class="w-1 h-8 bg-gradient-to-b from-green-500/40 to-amber-500/40 mx-auto"></div>
-            <svg class="w-4 h-4 text-amber-400 mx-auto -mt-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-          </div>
-        </div>
-        <div class="demo-step opacity-0 transform translate-y-4 transition-all duration-500" data-step="5">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-amber-400">Step 3: The Sphinx deepens to 3 layers</p>
-              <p class="text-xs text-slate-500">Riddle Deepener creates Surface, Hidden, and Deep layers</p>
-            </div>
-          </div>
-          <div class="ml-11 p-3 bg-slate-800/60 rounded-lg border border-amber-500/20 text-xs text-slate-300 space-y-2">
-            <p class="text-amber-400 font-medium">Layer 1 - Surface:</p>
-            <p class="italic">The outer riddle that most can solve...</p>
-            <p class="text-amber-400 font-medium">Layer 2 - Hidden:</p>
-            <p class="italic">A deeper metaphor beneath the surface...</p>
-            <p class="text-amber-400 font-medium">Layer 3 - Deep:</p>
-            <p class="italic">The philosophical core only the wise unravel...</p>
-          </div>
-        </div>
-        <div class="flex justify-center">
-          <div class="demo-arrow opacity-0 transition-all duration-300" data-step="6">
-            <div class="w-1 h-8 bg-gradient-to-b from-amber-500/40 to-blue-500/40 mx-auto"></div>
-            <svg class="w-4 h-4 text-blue-400 mx-auto -mt-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-          </div>
-        </div>
-        <div class="demo-step opacity-0 transform translate-y-4 transition-all duration-500" data-step="7">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-              <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            </div>
-            <div>
-              <p class="text-sm font-semibold text-blue-400">Step 4: Scorecard updated</p>
-              <p class="text-xs text-slate-500">Progress: 1/10 riddles completed. RAG: Green</p>
-            </div>
-          </div>
-          <div class="ml-11 p-3 bg-slate-800/60 rounded-lg border border-blue-500/20">
-            <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full demo-progress-bar" style="width: 0%; transition: width 1s ease"></div>
-            </div>
-            <p class="text-xs text-slate-500 mt-1">Pipeline loop complete. Data feeds back into the scorecard.</p>
-          </div>
-        </div>
-      </div>
-    </div>`;
-
-  document.body.appendChild(demo);
-
-  // Close on backdrop click
-  demo.addEventListener("click", (e) => {
-    if (e.target === demo) demo.remove();
-  });
-
-  // Animate steps sequentially
-  const steps = [1, 2, 3, 4, 5, 6, 7];
-  steps.forEach((step, i) => {
-    setTimeout(() => {
-      const els = demo.querySelectorAll(`[data-step="${step}"]`);
-      els.forEach(el => {
-        el.style.opacity = "1";
-        el.style.transform = "translateY(0)";
-      });
-      // Animate progress bar on last step
-      if (step === 7) {
-        setTimeout(() => {
-          const bar = demo.querySelector(".demo-progress-bar");
-          if (bar) bar.style.width = "10%";
-        }, 300);
-      }
-    }, 600 + i * 700);
-  });
+  // Re-fetch and render
+  Promise.all([apiFetch("/skill-outputs"), apiFetch("/feedback")])
+    .then(function(results) {
+      renderChainView(el, results[0].data || [], results[1].data || []);
+    })
+    .catch(function(err) {
+      showError(el, "Could not load skill chain: " + err.message);
+    });
 };
 
 
 // ═══════════════════════════════════════════════════════════════
-// 6. ACTIVITY TIMELINE — Chronological feed with expandable entries
+// 6. DEMO FLOW OVERLAYS — Chain A (KOL Insights) + Chain B (AE)
+// ═══════════════════════════════════════════════════════════════
+
+function createDemoOverlay(title, steps) {
+  // Remove existing overlay if any
+  const existing = document.getElementById("demo-overlay");
+  if (existing) existing.remove();
+
+  const demo = document.createElement("div");
+  demo.id = "demo-overlay";
+  demo.className = "fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex items-center justify-center overflow-y-auto";
+
+  let stepsHTML = '';
+  steps.forEach(function(step, i) {
+    if (step.type === "arrow") {
+      stepsHTML += '<div class="flex justify-center">';
+      stepsHTML += '<div class="demo-arrow opacity-0 transition-all duration-300" data-step="' + step.step + '">';
+      stepsHTML += '<div class="w-1 h-8 bg-gradient-to-b ' + (step.gradient || "from-slate-500/40 to-slate-500/0") + ' mx-auto"></div>';
+      stepsHTML += '<svg class="w-4 h-4 ' + (step.arrowColor || "text-slate-400") + ' mx-auto -mt-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+      stepsHTML += '</div>';
+      stepsHTML += '</div>';
+    } else {
+      stepsHTML += '<div class="demo-step opacity-0 transform translate-y-4 transition-all duration-500" data-step="' + step.step + '">';
+      stepsHTML += '<div class="flex items-center gap-3 mb-2">';
+      stepsHTML += '<div class="w-8 h-8 rounded-full ' + step.iconBg + ' flex items-center justify-center">';
+      stepsHTML += '<span class="text-sm font-bold ' + step.iconColor + '">' + step.iconSymbol + '</span>';
+      stepsHTML += '</div>';
+      stepsHTML += '<div>';
+      stepsHTML += '<p class="text-sm font-semibold ' + step.titleColor + '">' + esc(step.title) + '</p>';
+      stepsHTML += '<p class="text-xs text-slate-500">' + esc(step.subtitle) + '</p>';
+      stepsHTML += '</div>';
+      stepsHTML += '</div>';
+      stepsHTML += '<div class="ml-11 p-3 bg-slate-800/60 rounded-lg border ' + step.borderColor + ' text-sm text-slate-300">';
+      stepsHTML += step.content;
+      stepsHTML += '</div>';
+      stepsHTML += '</div>';
+    }
+  });
+
+  demo.innerHTML = '<div class="max-w-2xl w-full mx-4 my-8">' +
+    '<div class="flex items-center justify-between mb-6">' +
+    '<h3 class="text-lg font-bold text-white">' + esc(title) + '</h3>' +
+    '<button onclick="document.getElementById(\'demo-overlay\').remove()" class="text-slate-400 hover:text-white text-sm">&times; Close</button>' +
+    '</div>' +
+    '<div class="space-y-4" id="demo-steps">' + stepsHTML + '</div>' +
+    '</div>';
+
+  document.body.appendChild(demo);
+
+  // Close on backdrop click
+  demo.addEventListener("click", function(e) {
+    if (e.target === demo) demo.remove();
+  });
+
+  // Close on Escape
+  function onEsc(e) {
+    if (e.key === "Escape") {
+      demo.remove();
+      document.removeEventListener("keydown", onEsc);
+    }
+  }
+  document.addEventListener("keydown", onEsc);
+
+  // Animate steps sequentially
+  var allSteps = [];
+  steps.forEach(function(s) { allSteps.push(s.step); });
+  var uniqueSteps = [...new Set(allSteps)];
+  uniqueSteps.forEach(function(step, i) {
+    setTimeout(function() {
+      var els = demo.querySelectorAll('[data-step="' + step + '"]');
+      els.forEach(function(el) {
+        el.style.opacity = "1";
+        el.style.transform = "translateY(0)";
+      });
+      // Progress bar animation on final step
+      if (i === uniqueSteps.length - 1) {
+        setTimeout(function() {
+          var bars = demo.querySelectorAll(".demo-progress-bar");
+          bars.forEach(function(bar) { bar.style.width = bar.dataset.targetWidth || "10%"; });
+        }, 300);
+      }
+    }, 600 + i * 700);
+  });
+}
+
+
+// ── Chain A: KOL Insights Flow ──
+window.runDemoFlowA = function() {
+  var ec = personaColors["Dr. Elena Vasquez"];
+  var mc = personaColors["Marcus Chen"];
+  var sc = personaColors["Sarah Okonkwo"];
+
+  createDemoOverlay("Chain A: KOL Insights Flow", [
+    {
+      step: 1, type: "step",
+      iconBg: ec.iconBg, iconColor: ec.text, iconSymbol: "E",
+      titleColor: ec.text,
+      title: "Step 1: Dr. Elena Vasquez submits KOL insight",
+      subtitle: "MSL Field Rep captures engagement data",
+      borderColor: ec.border,
+      content: '<div class="space-y-2">' +
+        '<p class="text-xs text-slate-400">KOL: <span class="text-white">Dr. Margaret Liu</span> &mdash; Mass General, Boston</p>' +
+        '<p class="text-xs text-slate-400">Context: <span class="text-white">VBP-142 NSCLC treatment landscape</span></p>' +
+        '<p class="text-xs text-slate-400">Key insight: <span class="italic text-blue-300">"Patients are asking about real-world outcomes, not just trial data. First-in-class mechanism is compelling but clinicians want safety data from compassionate use."</span></p>' +
+        '<div class="flex gap-2 mt-2">' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400">engagement_type: advisory_board</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400">therapeutic_area: oncology</span>' +
+        '</div>' +
+        '</div>'
+    },
+    { step: 2, type: "arrow", gradient: "from-blue-500/40 to-indigo-500/40", arrowColor: "text-indigo-400" },
+    {
+      step: 3, type: "step",
+      iconBg: mc.iconBg, iconColor: mc.text, iconSymbol: "M",
+      titleColor: mc.text,
+      title: "Step 2: Marcus Chen aggregates insights",
+      subtitle: "Med Affairs Ops reviews and synthesizes",
+      borderColor: mc.border,
+      content: '<div class="space-y-2">' +
+        '<p class="text-xs text-slate-400">Aggregated with <span class="text-white">2 other recent KOL engagements</span></p>' +
+        '<div class="bg-slate-900/50 rounded p-2 mt-1">' +
+        '<p class="text-[10px] text-indigo-400 font-medium mb-1">Top Unmet Needs Identified:</p>' +
+        '<p class="text-[10px] text-slate-400">1. Real-world outcome data beyond Phase II</p>' +
+        '<p class="text-[10px] text-slate-400">2. Compassionate use safety signals</p>' +
+        '<p class="text-[10px] text-slate-400">3. Patient-reported outcome instruments</p>' +
+        '</div>' +
+        '<p class="text-xs text-slate-400 mt-1">Trend: <span class="text-indigo-300">3/3 KOLs emphasize patient outcomes over efficacy metrics</span></p>' +
+        '</div>'
+    },
+    { step: 4, type: "arrow", gradient: "from-indigo-500/40 to-purple-500/40", arrowColor: "text-purple-400" },
+    {
+      step: 5, type: "step",
+      iconBg: sc.iconBg, iconColor: sc.text, iconSymbol: "S",
+      titleColor: sc.text,
+      title: "Step 3: Sarah Okonkwo develops positioning",
+      subtitle: "Commercial Strategist refines messaging",
+      borderColor: sc.border,
+      content: '<div class="space-y-2">' +
+        '<p class="text-xs text-slate-400">Positioning: <span class="italic text-purple-300">"First-in-class with real-world KOL validation"</span></p>' +
+        '<p class="text-xs text-slate-400">Recommended pivot: Lead with patient outcomes, not mechanism of action</p>' +
+        '<div class="bg-slate-900/50 rounded p-2 mt-1">' +
+        '<p class="text-[10px] text-purple-400 font-medium">Messaging Framework Update:</p>' +
+        '<p class="text-[10px] text-slate-400">Primary: Patient-outcome-first narrative</p>' +
+        '<p class="text-[10px] text-slate-400">Secondary: First-in-class mechanism differentiation</p>' +
+        '<p class="text-[10px] text-slate-400">Proof points: 3 KOL endorsements + compassionate use data</p>' +
+        '</div>' +
+        '</div>'
+    },
+    { step: 6, type: "arrow", gradient: "from-purple-500/40 to-amber-500/40", arrowColor: "text-amber-400" },
+    {
+      step: 7, type: "step",
+      iconBg: "bg-amber-500/20", iconColor: "text-amber-400", iconSymbol: "!",
+      titleColor: "text-amber-400",
+      title: "Step 4: Decision logged",
+      subtitle: "Strategic pivot captured in goal system",
+      borderColor: "border-amber-500/20",
+      content: '<div class="bg-amber-500/5 border border-amber-500/10 rounded p-2">' +
+        '<p class="text-xs font-medium text-amber-400 mb-1">Decision: Shift messaging from efficacy-first to patient-outcome-first</p>' +
+        '<p class="text-[10px] text-slate-400">Rationale: Consistent KOL feedback indicates market preference for outcome data</p>' +
+        '<p class="text-[10px] text-slate-400 mt-1">Impact: LAUNCH-READY messaging materials updated, VBP-142 positioning revised</p>' +
+        '</div>'
+    },
+    { step: 8, type: "arrow", gradient: "from-amber-500/40 to-emerald-500/40", arrowColor: "text-emerald-400" },
+    {
+      step: 9, type: "step",
+      iconBg: "bg-emerald-500/20", iconColor: "text-emerald-400", iconSymbol: "+",
+      titleColor: "text-emerald-400",
+      title: "Step 5: Scorecard updates",
+      subtitle: "Programs reflect intelligence chain output",
+      borderColor: "border-emerald-500/20",
+      content: '<div class="space-y-3">' +
+        '<div class="flex items-center justify-between">' +
+        '<span class="text-xs text-white">KOL-INSIGHTS</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">Green 20%</span>' +
+        '</div>' +
+        '<div class="h-2 bg-slate-700 rounded-full overflow-hidden">' +
+        '<div class="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full demo-progress-bar" style="width: 0%; transition: width 1s ease" data-target-width="20%"></div>' +
+        '</div>' +
+        '<div class="flex items-center justify-between mt-2">' +
+        '<span class="text-xs text-white">LAUNCH-READY</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">Green 10%</span>' +
+        '</div>' +
+        '<div class="h-2 bg-slate-700 rounded-full overflow-hidden">' +
+        '<div class="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full demo-progress-bar" style="width: 0%; transition: width 1s ease" data-target-width="10%"></div>' +
+        '</div>' +
+        '<p class="text-[10px] text-slate-500 mt-1">Pipeline loop complete. Intelligence feeds back into the scorecard.</p>' +
+        '</div>'
+    }
+  ]);
+};
+
+
+// ── Chain B: AE Escalation Flow ──
+window.runDemoFlowB = function() {
+  var jc = personaColors["Dr. James Park"];
+  var ac = personaColors["Dr. Amara Osei"];
+  var rc = personaColors["Dr. Richard Stein"];
+
+  createDemoOverlay("Chain B: AE Escalation Flow", [
+    {
+      step: 1, type: "step",
+      iconBg: jc.iconBg, iconColor: jc.text, iconSymbol: "J",
+      titleColor: jc.text,
+      title: "Step 1: Dr. James Park flags adverse event",
+      subtitle: "CRA Site Monitor detects Grade 3 AE",
+      borderColor: jc.border,
+      content: '<div class="space-y-2">' +
+        '<p class="text-xs text-slate-400">AE ID: <span class="text-white font-mono">AE-2026-014-003</span></p>' +
+        '<p class="text-xs text-slate-400">Site: <span class="text-white">Site 014 — Memorial Sloan Kettering</span></p>' +
+        '<p class="text-xs text-slate-400">Event: <span class="text-emerald-300 font-medium">Grade 3 hepatotoxicity</span></p>' +
+        '<div class="flex gap-2 mt-2">' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400">severity: grade_3</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">type: hepatotoxicity</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">causality: pending</span>' +
+        '</div>' +
+        '</div>'
+    },
+    { step: 2, type: "arrow", gradient: "from-emerald-500/40 to-amber-500/40", arrowColor: "text-amber-400" },
+    {
+      step: 3, type: "step",
+      iconBg: ac.iconBg, iconColor: ac.text, iconSymbol: "A",
+      titleColor: ac.text,
+      title: "Step 2: Dr. Amara Osei evaluates causality",
+      subtitle: "Patient Safety assesses signal",
+      borderColor: ac.border,
+      content: '<div class="space-y-2">' +
+        '<div class="bg-slate-900/50 rounded p-2">' +
+        '<p class="text-[10px] text-amber-400 font-medium mb-1">Naranjo Assessment:</p>' +
+        '<p class="text-[10px] text-slate-400">Score: <span class="text-white font-medium">6</span> (Probable)</p>' +
+        '<p class="text-[10px] text-slate-400">Classification: <span class="text-amber-300 font-medium">Probable causal relationship</span></p>' +
+        '</div>' +
+        '<div class="bg-slate-900/50 rounded p-2 mt-1">' +
+        '<p class="text-[10px] text-amber-400 font-medium mb-1">Signal Detection:</p>' +
+        '<p class="text-[10px] text-slate-400">Hepatotoxicity rate: <span class="text-white">2.1%</span> (threshold: 1.5%)</p>' +
+        '<p class="text-[10px] text-red-400 font-medium">Signal detected: rate exceeds safety threshold</p>' +
+        '</div>' +
+        '</div>'
+    },
+    { step: 4, type: "arrow", gradient: "from-amber-500/40 to-red-500/40", arrowColor: "text-red-400" },
+    {
+      step: 5, type: "step",
+      iconBg: rc.iconBg, iconColor: rc.text, iconSymbol: "R",
+      titleColor: rc.text,
+      title: "Step 3: Dr. Richard Stein decides",
+      subtitle: "Medical Director approves protocol amendment",
+      borderColor: rc.border,
+      content: '<div class="space-y-2">' +
+        '<div class="bg-red-500/5 border border-red-500/10 rounded p-2">' +
+        '<p class="text-xs font-medium text-red-400 mb-1">Decision: approve_amendment</p>' +
+        '<p class="text-[10px] text-slate-400">Action: Add mandatory liver function monitoring (ALT/AST) at each study visit</p>' +
+        '<p class="text-[10px] text-slate-400 mt-1">Protocol version: v3.2 amendment pending IRB review</p>' +
+        '</div>' +
+        '<div class="flex gap-2 mt-2">' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-400">regulatory_impact: protocol_amendment</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">timeline: 2-4 weeks for IRB</span>' +
+        '</div>' +
+        '</div>'
+    },
+    { step: 6, type: "arrow", gradient: "from-red-500/40 to-purple-500/40", arrowColor: "text-purple-400" },
+    {
+      step: 7, type: "step",
+      iconBg: "bg-purple-500/20", iconColor: "text-purple-400", iconSymbol: "X",
+      titleColor: "text-purple-400",
+      title: "Step 4: Cross-cutting alignment impact",
+      subtitle: "AE-SENTINEL impacts VBP-142 Phase II",
+      borderColor: "border-purple-500/20",
+      content: '<div class="space-y-2">' +
+        '<div class="bg-purple-500/5 border border-purple-500/10 rounded p-2">' +
+        '<p class="text-xs text-slate-400">AE-SENTINEL <span class="text-purple-400">cross-cuts</span> VBP-142 Phase II Readiness</p>' +
+        '<div class="flex items-center gap-2 mt-2">' +
+        '<span class="text-[10px] text-slate-500">Alignment strength:</span>' +
+        '<div class="flex-1 h-1.5 bg-slate-700 rounded-full">' +
+        '<div class="h-full bg-purple-400 rounded-full" style="width: 90%"></div>' +
+        '</div>' +
+        '<span class="text-[10px] text-purple-400 font-medium">90%</span>' +
+        '</div>' +
+        '<p class="text-[10px] text-slate-400 mt-1">Protocol amendment delays may impact Phase II readiness timeline</p>' +
+        '</div>' +
+        '</div>'
+    },
+    { step: 8, type: "arrow", gradient: "from-purple-500/40 to-amber-500/40", arrowColor: "text-amber-400" },
+    {
+      step: 9, type: "step",
+      iconBg: "bg-amber-500/20", iconColor: "text-amber-400", iconSymbol: "!",
+      titleColor: "text-amber-400",
+      title: "Step 5: Scorecard updates",
+      subtitle: "Programs reflect safety signal impact",
+      borderColor: "border-amber-500/20",
+      content: '<div class="space-y-3">' +
+        '<div class="flex items-center justify-between">' +
+        '<span class="text-xs text-white">AE-SENTINEL</span>' +
+        '<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">Amber 15%</span>' +
+        '</div>' +
+        '<div class="h-2 bg-slate-700 rounded-full overflow-hidden">' +
+        '<div class="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full demo-progress-bar" style="width: 0%; transition: width 1s ease" data-target-width="15%"></div>' +
+        '</div>' +
+        '<p class="text-[10px] text-slate-500 mt-1">Safety signal escalation complete. Amendment tracking in progress.</p>' +
+        '</div>'
+    }
+  ]);
+};
+
+// Keep backward compat for any existing calls
+window.runDemoFlow = window.runDemoFlowA;
+
+
+// ═══════════════════════════════════════════════════════════════
+// 7. ACTIVITY TIMELINE — Chronological feed with persona colors
 // ═══════════════════════════════════════════════════════════════
 
 async function renderTimeline() {
@@ -675,7 +850,6 @@ async function renderTimeline() {
       apiFetch("/feedback"),
     ]);
 
-    // Merge outputs and feedback into a single timeline
     const events = [];
     for (const o of (outputsRes.data || [])) {
       events.push({
@@ -709,7 +883,6 @@ async function renderTimeline() {
     }
 
     events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
-
     document.getElementById("timeline-badge").textContent = events.length + " events";
 
     if (events.length === 0) {
@@ -717,28 +890,34 @@ async function renderTimeline() {
         <div class="text-center py-8">
           <svg class="w-8 h-8 text-slate-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <p class="text-sm text-slate-500">No activity yet</p>
-          <p class="text-xs text-slate-600 mt-1">Events will appear as the riddle pipeline runs</p>
+          <p class="text-xs text-slate-600 mt-1">Events will appear as the intelligence pipeline runs</p>
         </div>`;
       return;
     }
 
     const typeConfig = {
-      output: { dot: "bg-green-400", label: "Output", icon: "text-green-400" },
-      feedback: { dot: "bg-purple-400", label: "Review", icon: "text-purple-400" },
-      response: { dot: "bg-amber-400", label: "Response", icon: "text-amber-400" },
+      output: { label: "Output", defaultDot: "bg-green-400", defaultIcon: "text-green-400" },
+      feedback: { label: "Review", defaultDot: "bg-purple-400", defaultIcon: "text-purple-400" },
+      response: { label: "Response", defaultDot: "bg-amber-400", defaultIcon: "text-amber-400" },
     };
 
     el.innerHTML = `<div class="relative">
       <div class="absolute left-3 top-0 bottom-0 w-px bg-slate-800"></div>
       ${events.map((e, i) => {
         const tc = typeConfig[e.type] || typeConfig.output;
+        // Use persona color for the dot if available
+        const personName = e.type === "output" ? e.data.person_name : (e.type === "response" ? e.data.requested_from : null);
+        const pc = personName ? personaColors[personName] : null;
+        const dotColor = pc ? pc.iconBg.replace("bg-", "bg-") : tc.defaultDot;
+        const iconColor = pc ? pc.text : tc.defaultIcon;
+
         return `
           <div class="timeline-entry relative pl-8 pb-4 cursor-pointer hover:bg-slate-800/20 -mx-2 px-10 py-2 rounded-lg transition-colors"
                onclick="this.querySelector('.tl-detail').classList.toggle('hidden')"
                style="animation-delay: ${i * 0.1}s">
-            <div class="absolute left-1.5 top-3 w-3 h-3 rounded-full ${tc.dot} border-2 border-slate-900"></div>
+            <div class="absolute left-1.5 top-3 w-3 h-3 rounded-full ${dotColor} border-2 border-slate-900"></div>
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-[10px] font-medium ${tc.icon}">${tc.label}</span>
+              <span class="text-[10px] font-medium ${iconColor}">${tc.label}</span>
               <span class="text-[10px] text-slate-600">${esc(e.person)}</span>
               <span class="text-[10px] text-slate-600 ml-auto">${timeAgo(e.time)}</span>
             </div>
@@ -774,7 +953,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Load all panels in parallel
   Promise.allSettled([
-    renderOrgTree(),
+    renderBreadcrumb(),
     renderGoalCascade(),
     renderScorecard(),
     renderSkills(),

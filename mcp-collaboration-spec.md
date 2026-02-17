@@ -45,21 +45,21 @@ Each persona's workflow is defined as a **SKILL.md** markdown file following the
 ## 2. Architecture Diagram
 
 ```
-Claude Code Instance (Persona: Dr. Sarah Chen)
+Claude Code Instance (Persona: Dr. Elena Vasquez -- Chain A)
     |
     |--- stdio ---> [Scorecard MCP Server]  ---> Neon PostgreSQL
                        (scorecard-mcp/)           (all tables)
 
-Claude Code Instance (Persona: Dr. James Rivera)
+Claude Code Instance (Persona: Dr. James Park -- Chain B)
     |
     |--- stdio ---> [Scorecard MCP Server]  ---> Same Neon PostgreSQL
 
-Claude Code Instance (Persona: Dr. Priya Sharma)
+Claude Code Instance (Persona: Marcus Chen -- Chain A)
     |
     |--- stdio ---> [Scorecard MCP Server]  ---> Same Neon PostgreSQL
 ```
 
-All three Claude instances share the same Neon database. Each instance launches its own MCP server process via stdio, but all processes connect to the same Neon Postgres via `DATABASE_URL`.
+All Claude instances share the same Neon database. Each instance launches its own MCP server process via stdio, but all processes connect to the same Neon Postgres via `DATABASE_URL`.
 
 ---
 
@@ -75,13 +75,19 @@ az-intelligence-flow/
 ├── migrations/
 │   └── 002-collaboration-tables.sql      # Adds skills, skill_outputs, feedback_requests
 │
-├── skills/                               # Agent-agnostic SKILL.md definitions
-│   ├── compound-analysis/
-│   │   └── SKILL.md                      # Dr. Sarah Chen's skill
-│   ├── biomarker-validation/
-│   │   └── SKILL.md                      # Dr. James Rivera's skill
-│   ├── trial-feasibility/
-│   │   └── SKILL.md                      # Dr. Priya Sharma's skill
+├── skills/                               # Agent-agnostic SKILL.md definitions (6 skills)
+│   ├── msl-insight-reporter/
+│   │   └── SKILL.md                      # Dr. Elena Vasquez's skill (Chain A)
+│   ├── med-affairs-aggregator/
+│   │   └── SKILL.md                      # Marcus Chen's skill (Chain A)
+│   ├── commercial-strategist/
+│   │   └── SKILL.md                      # Sarah Okonkwo's skill (Chain A)
+│   ├── cra-site-monitor/
+│   │   └── SKILL.md                      # Dr. James Park's skill (Chain B)
+│   ├── patient-safety-evaluator/
+│   │   └── SKILL.md                      # Dr. Amara Osei's skill (Chain B)
+│   ├── medical-director-reviewer/
+│   │   └── SKILL.md                      # Dr. Richard Stein's skill (Chain B)
 │   └── scorecard-overview/
 │       └── SKILL.md                      # Anyone: query the full scorecard
 │
@@ -101,7 +107,11 @@ az-intelligence-flow/
 │           ├── outputs.ts                # Skill output submission + querying
 │           └── feedback.ts               # Feedback request/response workflow
 │
-├── seed.ts                               # Seed data for demo scenario
+├── seeds/
+│   └── vantage-biopharma-seed.sql        # Vantage Biopharma demo seed data
+├── scorecard-api/                        # REST API server (Express.js + Prisma)
+├── goals.html + goals.js                 # CEO Goal View page
+├── demo.html + demo.js                   # Program Dashboard page
 ├── mcp-collaboration-spec.md             # This file
 ├── app-overview.md                       # System overview
 ├── README.md                             # Setup + collaboration instructions
@@ -575,7 +585,7 @@ ORDER BY depth, name;
 **Input Schema (Zod)**:
 ```typescript
 {
-  person_name: z.string().describe("The person's name (e.g., 'Dr. Sarah Chen')"),
+  person_name: z.string().describe("The person's name (e.g., 'Dr. Elena Vasquez')"),
 }
 ```
 
@@ -1229,248 +1239,57 @@ You are acting as **[Persona Name]**, [title] in [team] at AstraZeneca.
 
 ## 9. Skill Definitions
 
-### 9.1 Compound Analysis (Dr. Sarah Chen)
+The Vantage Biopharma demo has 6 skills organized into two chains. Skill files live in `skills/<skill-name>/SKILL.md`. Each follows the same YAML frontmatter + workflow pattern described in Section 8.
 
-File: `skills/compound-analysis/SKILL.md`
+### 9.1 MSL Insight Reporter (Dr. Elena Vasquez) -- Chain A, Step 1
 
-```markdown
----
-name: compound-analysis
-description: >
-  Compound efficacy analysis skill for Dr. Sarah Chen, Oncology Data Scientist.
-  Screens compound libraries, ranks candidates by efficacy, and produces
-  selectivity data for lead selection. Uses scorecard and collaboration MCP tools.
----
+File: `skills/msl-insight-reporter/SKILL.md`
 
-# Compound Efficacy Analysis
+Persona: Dr. Elena Vasquez, Senior MSL in Field Medical (Medical Affairs). Captures and structures KOL interaction insights from the field, submits them to the scorecard, and requests Marcus Chen's review.
 
-## Role
-You are acting as **Dr. Sarah Chen**, Lead Data Scientist in Oncology Data Science at AstraZeneca. Your expertise is high-throughput compound screening and efficacy profiling for CDK4/6 inhibitor candidates.
+**Chain position:** First in Chain A (KOL Insights). Outputs feed into Med Affairs Aggregator.
 
-## Workflow
+### 9.2 Med Affairs Aggregator (Marcus Chen) -- Chain A, Step 2
 
-### Step 1: Check your goals
-- Call `get_goals_for_person` with `person_name: "Dr. Sarah Chen"`
-- Review your assigned goals and identify the current priority program
+File: `skills/med-affairs-aggregator/SKILL.md`
 
-### Step 2: Check for any existing outputs
-- Call `get_skill_outputs` with `person_name: "Dr. Sarah Chen"` to see prior work
-- Check if any upstream data is available
+Persona: Marcus Chen, Medical Operations Manager (Medical Affairs). Reviews Elena's field insights, aggregates them into regional trend reports, and requests Sarah Okonkwo's review.
 
-### Step 3: Execute compound analysis
-- Review the target profile (CDK4/6 selectivity over CDK2)
-- Screen the compound library against binding affinity, selectivity ratio, and ADMET properties
-- Rank candidates by efficacy score (composite of binding affinity and selectivity)
-- Identify top 3-5 candidates with rationale
+**Chain position:** Second in Chain A. Receives Elena's insights, outputs feed into Commercial Strategist.
 
-### Step 4: Submit your output
-- Call `submit_skill_output` with:
-  - `skill_id`: Your "Compound Efficacy Analysis" skill ID
-  - `person_name`: "Dr. Sarah Chen"
-  - `goal_name`: "Screen candidate compound library"
-  - `output_data`: JSON with candidates array, top_compound, total_screened, hit_rate
-  - `output_summary`: Brief summary of screening results and lead candidate
+### 9.3 Commercial Strategist (Sarah Okonkwo) -- Chain A, Step 3
 
-### Step 5: Request downstream review
-- Call `request_feedback` with:
-  - `skill_output_id`: The output ID from Step 4
-  - `requested_by`: "Dr. Sarah Chen"
-  - `requested_from`: "Dr. James Rivera"
-  - `request_message`: Request review of lead candidates for biomarker validation suitability
+File: `skills/commercial-strategist/SKILL.md`
 
-### Step 6: Update the scorecard
-- Call `add_progress_update` with the program ID, completion status, and metrics
+Persona: Sarah Okonkwo, Launch Strategy Director (Commercial). Translates aggregated medical insights into commercial launch positioning strategies.
 
-## MCP Tools Used
+**Chain position:** Third in Chain A. Receives Marcus's trend reports, produces final launch strategy output.
 
-| Tool | Purpose |
-|------|---------|
-| `get_goals_for_person` | Check Sarah's assigned goals |
-| `get_skill_outputs` | Review prior work |
-| `submit_skill_output` | Submit screening results |
-| `request_feedback` | Request James's review |
-| `add_progress_update` | Update scorecard progress |
+### 9.4 CRA Site Monitor (Dr. James Park) -- Chain B, Step 1
 
-## Example Output
+File: `skills/cra-site-monitor/SKILL.md`
 
-```json
-{
-  "candidates": [
-    { "compound_id": "AZD-4891", "efficacy_score": 0.94, "selectivity_cdk46": 47.2 },
-    { "compound_id": "AZD-5023", "efficacy_score": 0.87, "selectivity_cdk46": 38.1 },
-    { "compound_id": "AZD-3177", "efficacy_score": 0.82, "selectivity_cdk46": 41.5 }
-  ],
-  "top_compound": "AZD-4891",
-  "total_screened": 2847,
-  "hit_rate": 0.032
-}
-```
-```
+Persona: Dr. James Park, Senior CRA in Site Operations (Clinical Development). Monitors clinical sites, flags adverse event signals, and requests Dr. Amara Osei's review.
 
-### 9.2 Biomarker Validation (Dr. James Rivera)
+**Chain position:** First in Chain B (AE Escalation). Outputs feed into Patient Safety Evaluator.
 
-File: `skills/biomarker-validation/SKILL.md`
+### 9.5 Patient Safety Evaluator (Dr. Amara Osei) -- Chain B, Step 2
 
-```markdown
----
-name: biomarker-validation
-description: >
-  Biomarker identification and validation skill for Dr. James Rivera,
-  Translational Scientist. Identifies predictive biomarkers from compound
-  data and patient samples, produces validated biomarker panels and patient
-  selection criteria. Uses scorecard and collaboration MCP tools.
----
+File: `skills/patient-safety-evaluator/SKILL.md`
 
-# Biomarker Identification & Validation
+Persona: Dr. Amara Osei, Patient Safety Director (Clinical Development). Evaluates AE signals from site monitoring, produces safety assessments, and requests Dr. Richard Stein's review.
 
-## Role
-You are acting as **Dr. James Rivera**, Senior Translational Scientist in Translational Science at AstraZeneca. Your expertise is predictive biomarker development for oncology therapeutics.
+**Chain position:** Second in Chain B. Receives James's AE reports, outputs feed into Medical Director Reviewer.
 
-## Workflow
+### 9.6 Medical Director Reviewer (Dr. Richard Stein) -- Chain B, Step 3
 
-### Step 1: Check pending reviews
-- Call `get_pending_reviews` with `person_name: "Dr. James Rivera"`
-- Review any feedback requests from upstream collaborators (e.g., Dr. Sarah Chen)
+File: `skills/medical-director-reviewer/SKILL.md`
 
-### Step 2: Review upstream data
-- Call `get_upstream_outputs` with `goal_name: "Identify candidate biomarkers"`
-- Review compound data from Sarah's analysis
+Persona: Dr. Richard Stein, VP Clinical Development (Clinical Leadership). Reviews safety escalations and issues medical directives with regulatory recommendations.
 
-### Step 3: Submit feedback on upstream work
-- If there are pending reviews, call `submit_feedback` with your assessment
-- Provide scientific evaluation of compound suitability for biomarker development
+**Chain position:** Third in Chain B. Receives Amara's safety assessments, produces final medical directive output.
 
-### Step 4: Execute biomarker identification
-- Analyze compound target profile for biomarker candidates
-- Cross-reference with genomic databases and literature
-- Validate candidate markers against patient sample data
-- Produce ranked biomarker panel with predictive values
-
-### Step 5: Submit your output
-- Call `submit_skill_output` with:
-  - `skill_id`: Your "Biomarker Identification & Validation" skill ID
-  - `person_name`: "Dr. James Rivera"
-  - `goal_name`: "Identify candidate biomarkers"
-  - `output_data`: JSON with biomarker_panel, recommended_patient_criteria, sample_size_analyzed
-  - `output_summary`: Summary of biomarker panel and patient criteria
-
-### Step 6: Request downstream review
-- Call `request_feedback` with:
-  - `skill_output_id`: The output ID from Step 5
-  - `requested_by`: "Dr. James Rivera"
-  - `requested_from`: "Dr. Priya Sharma"
-  - `request_message`: Request review of biomarker panel and patient criteria for clinical feasibility
-
-### Step 7: Update the scorecard
-- Call `add_progress_update` with the program ID, completion status, and metrics
-
-## MCP Tools Used
-
-| Tool | Purpose |
-|------|---------|
-| `get_pending_reviews` | Check for feedback requests |
-| `get_upstream_outputs` | Review compound data from Sarah |
-| `submit_feedback` | Respond to Sarah's feedback request |
-| `submit_skill_output` | Submit biomarker panel results |
-| `request_feedback` | Request Priya's review |
-| `add_progress_update` | Update scorecard progress |
-
-## Example Output
-
-```json
-{
-  "biomarker_panel": [
-    { "marker": "CCND1 amplification", "type": "genomic", "predictive_value": 0.89 },
-    { "marker": "RB1 wild-type status", "type": "genomic", "predictive_value": 0.91 },
-    { "marker": "p16 loss", "type": "protein", "predictive_value": 0.78 },
-    { "marker": "CDK4 expression level", "type": "protein", "predictive_value": 0.72 }
-  ],
-  "recommended_patient_criteria": "CCND1-amplified, RB1-wt, with p16 loss",
-  "sample_size_analyzed": 342
-}
-```
-```
-
-### 9.3 Trial Feasibility (Dr. Priya Sharma)
-
-File: `skills/trial-feasibility/SKILL.md`
-
-```markdown
----
-name: trial-feasibility
-description: >
-  Clinical trial feasibility assessment skill for Dr. Priya Sharma,
-  Clinical Development Lead. Assesses trial feasibility including protocol
-  design, site selection, recruitment projections, and endpoint definition.
-  Uses scorecard and collaboration MCP tools.
----
-
-# Clinical Trial Feasibility Assessment
-
-## Role
-You are acting as **Dr. Priya Sharma**, Clinical Development Lead in Clinical Operations at AstraZeneca. Your expertise is clinical trial design and feasibility assessment for oncology programs.
-
-## Workflow
-
-### Step 1: Get upstream outputs
-- Call `get_upstream_outputs` with `goal_name: "Trial protocol design"`
-- Review compound data from Sarah and biomarker criteria from James
-
-### Step 2: Check pending reviews
-- Call `get_pending_reviews` with `person_name: "Dr. Priya Sharma"`
-- Review any feedback requests from upstream collaborators (e.g., Dr. James Rivera)
-
-### Step 3: Submit feedback on upstream work
-- If there are pending reviews, call `submit_feedback` with your assessment
-- Evaluate biomarker criteria for clinical feasibility and recruitment viability
-
-### Step 4: Execute feasibility assessment
-- Assess target patient population size based on biomarker criteria
-- Evaluate site feasibility across regions
-- Project recruitment timelines and enrollment velocity
-- Design adaptive protocol with appropriate endpoints
-- Produce comprehensive feasibility report
-
-### Step 5: Submit your output
-- Call `submit_skill_output` with:
-  - `skill_id`: Your "Clinical Trial Feasibility Assessment" skill ID
-  - `person_name`: "Dr. Priya Sharma"
-  - `goal_name`: "Trial protocol design"
-  - `output_data`: JSON with feasibility_score, protocol_type, enrollment details, endpoints
-  - `output_summary`: Summary of feasibility assessment and key recommendations
-
-### Step 6: Update the scorecard
-- Call `add_progress_update` with the program ID, completion status, and metrics
-
-## MCP Tools Used
-
-| Tool | Purpose |
-|------|---------|
-| `get_upstream_outputs` | Review compound and biomarker data |
-| `get_pending_reviews` | Check for feedback requests |
-| `submit_feedback` | Respond to James's feedback request |
-| `submit_skill_output` | Submit feasibility report |
-| `add_progress_update` | Update scorecard progress |
-
-## Example Output
-
-```json
-{
-  "feasibility_score": 0.82,
-  "protocol_type": "Phase I/II adaptive",
-  "estimated_enrollment": 120,
-  "enrollment_timeline_months": 14,
-  "recommended_sites": 18,
-  "regions": ["North America", "Western Europe"],
-  "primary_endpoint": "ORR by RECIST 1.1",
-  "secondary_endpoints": ["PFS", "DOR", "CBR", "Safety/tolerability"],
-  "inclusion_biomarkers": ["CCND1 amplification", "RB1 wild-type", "p16 loss"],
-  "compound": "AZD-4891"
-}
-```
-```
-
-### 9.4 Scorecard Overview (Anyone)
+### 9.7 Scorecard Overview (Anyone)
 
 File: `skills/scorecard-overview/SKILL.md`
 
@@ -1522,758 +1341,138 @@ You are reviewing the AstraZeneca organizational scorecard to understand the cur
 
 ### 10.1 Overview
 
-The seed script (`seed.ts` at the project root) populates the Neon PostgreSQL database with:
+The seed data is provided as a SQL file (`seeds/vantage-biopharma-seed.sql`) that populates the Neon PostgreSQL database with the full Vantage Biopharma hierarchy:
 
-1. Org hierarchy (AZ -> Oncology R&D -> Sarah, James; Clinical Dev -> Priya)
-2. Goal hierarchy (Pillar -> Category -> Goal -> Program for CDK4/6 inhibitor)
+1. Org hierarchy (18 org units: Vantage Biopharma > BUs > Functions > Departments > Individuals)
+2. Goal hierarchy (21 goal items: 3 Pillars, 5 Categories, 7 Goals, 4 Programs, 2 standalone goals)
 3. Goal alignments (cross-team dependencies)
 4. Quarterly objectives (2026 Q1-Q4)
-5. Initial progress update for Sarah's first program
-6. Pre-registered skills for all 3 personas
+5. Initial progress updates for programs
+6. Pre-registered skills for all 6 personas
 
-**IMPORTANT**: Run this script only once. It inserts all demo data.
+**Run:** `psql $DATABASE_URL -f seeds/vantage-biopharma-seed.sql`
 
-### 10.2 The 3 Personas
+### 10.2 The 6 Personas
 
-**Dr. Sarah Chen** -- Oncology Data Scientist (Oncology R&D)
-- Skill: "Compound Efficacy Analysis" (personal)
-- Input: Compound library, target profile
-- Output: Ranked candidates with efficacy scores, selectivity data
+**Dr. Elena Vasquez** -- Senior MSL, Field Medical (Medical Affairs)
+- Skill: "MSL Insight Reporter" (personal)
+- Input: KOL interaction data, therapeutic area context
+- Output: Structured insight report, engagement summary
 
-**Dr. James Rivera** -- Translational Scientist (Oncology R&D)
-- Skill: "Biomarker Identification & Validation" (personal)
-- Input: Lead compounds, patient sample data
-- Output: Validated biomarker panel, patient selection criteria
+**Marcus Chen** -- Medical Operations Manager (Medical Affairs)
+- Skill: "Med Affairs Aggregator" (personal)
+- Input: Field insights, regional data
+- Output: Regional trend report, aggregated insights
 
-**Dr. Priya Sharma** -- Clinical Development Lead (Clinical Development)
-- Skill: "Clinical Trial Feasibility Assessment" (team)
-- Input: Biomarker criteria, compound data, target indication
-- Output: Feasibility report, protocol recommendations, recruitment projections
+**Sarah Okonkwo** -- Launch Strategy Director (Commercial)
+- Skill: "Commercial Strategist" (personal)
+- Input: Medical insights, market data
+- Output: Launch positioning strategy, market recommendations
 
-### 10.3 Data Tables
+**Dr. James Park** -- Senior CRA, Site Operations (Clinical Development)
+- Skill: "CRA Site Monitor" (personal)
+- Input: Site data, clinical trial metrics
+- Output: AE signal report, site compliance data
 
-#### Org Units
+**Dr. Amara Osei** -- Patient Safety Director (Clinical Development)
+- Skill: "Patient Safety Evaluator" (personal)
+- Input: AE signals, safety data
+- Output: Safety assessment, risk classification
 
-| Name | Level | Parent | Owner |
-|------|-------|--------|-------|
-| AstraZeneca | Enterprise | -- | -- |
-| Oncology R&D | Business Unit | AstraZeneca | -- |
-| Clinical Development | Business Unit | AstraZeneca | -- |
-| Oncology Data Science | Department | Oncology R&D | -- |
-| Translational Science | Department | Oncology R&D | -- |
-| Clinical Operations | Department | Clinical Development | -- |
-| Dr. Sarah Chen | Individual | Oncology Data Science | Dr. Sarah Chen |
-| Dr. James Rivera | Individual | Translational Science | Dr. James Rivera |
-| Dr. Priya Sharma | Individual | Clinical Operations | Dr. Priya Sharma |
+**Dr. Richard Stein** -- VP Clinical Development (Clinical Leadership)
+- Skill: "Medical Director Reviewer" (personal)
+- Input: Safety assessments, escalation reports
+- Output: Medical directive, regulatory recommendation
 
-#### Goal Items
+### 10.3 Data Summary
 
-| Name | Level | Org Unit | Owner | Parent Goal |
-|------|-------|----------|-------|-------------|
-| Advance Novel Oncology Therapeutics | Pillar | Oncology R&D | -- | -- |
-| CDK4/6 Inhibitor Program | Category | Oncology R&D | -- | Pillar above |
-| Identify Lead Compound | Goal | Oncology Data Science | Dr. Sarah Chen | Category above |
-| Validate Predictive Biomarkers | Goal | Translational Science | Dr. James Rivera | Category above |
-| Assess Clinical Feasibility | Goal | Clinical Operations | Dr. Priya Sharma | Category above |
-| Screen candidate compound library | Program | Oncology Data Science | Dr. Sarah Chen | Identify Lead Compound |
-| In-vitro efficacy profiling | Program | Oncology Data Science | Dr. Sarah Chen | Identify Lead Compound |
-| Lead candidate selection | Program | Oncology Data Science | Dr. Sarah Chen | Identify Lead Compound |
-| Identify candidate biomarkers | Program | Translational Science | Dr. James Rivera | Validate Predictive Biomarkers |
-| Retrospective patient sample analysis | Program | Translational Science | Dr. James Rivera | Validate Predictive Biomarkers |
-| Define patient selection criteria | Program | Translational Science | Dr. James Rivera | Validate Predictive Biomarkers |
-| Trial protocol design | Program | Clinical Operations | Dr. Priya Sharma | Assess Clinical Feasibility |
-| Site and patient recruitment assessment | Program | Clinical Operations | Dr. Priya Sharma | Assess Clinical Feasibility |
-| Endpoint definition and statistical design | Program | Clinical Operations | Dr. Priya Sharma | Assess Clinical Feasibility |
+The full seed data is defined in `seeds/vantage-biopharma-seed.sql`. Key counts:
 
-#### Program Objectives (Quarterly)
-
-| Program | Quarter | Objective |
-|---------|---------|-----------|
-| Screen candidate compound library | Q1 | Complete high-throughput screening of CDK4/6 focused compound library |
-| In-vitro efficacy profiling | Q1 | Initiate in-vitro assays for top screening hits |
-| In-vitro efficacy profiling | Q2 | Complete efficacy and selectivity profiling of lead candidates |
-| Lead candidate selection | Q2 | Select lead candidate based on efficacy, selectivity, and ADMET profile |
-| Identify candidate biomarkers | Q2 | Identify candidate biomarker panel from literature and genomic data |
-| Retrospective patient sample analysis | Q2 | Begin retrospective analysis of archived patient samples |
-| Retrospective patient sample analysis | Q3 | Complete patient sample analysis and validate biomarker correlations |
-| Define patient selection criteria | Q3 | Establish patient selection criteria based on validated biomarkers |
-| Trial protocol design | Q3 | Draft Phase I/II clinical trial protocol |
-| Site and patient recruitment assessment | Q3 | Initiate site feasibility assessments |
-| Site and patient recruitment assessment | Q4 | Complete recruitment projections and site selection |
-| Endpoint definition and statistical design | Q4 | Finalize primary/secondary endpoints and statistical analysis plan |
-
-#### Goal Alignments
-
-| Child Goal | Parent Goal | Type |
-|-----------|-------------|------|
-| Identify candidate biomarkers | Lead candidate selection | primary |
-| Trial protocol design | Define patient selection criteria | primary |
-| Site and patient recruitment assessment | Define patient selection criteria | secondary |
-| CDK4/6 Inhibitor Program | Advance Novel Oncology Therapeutics | primary |
-| Identify Lead Compound | CDK4/6 Inhibitor Program | primary |
-| Validate Predictive Biomarkers | CDK4/6 Inhibitor Program | primary |
-| Assess Clinical Feasibility | CDK4/6 Inhibitor Program | primary |
-
-#### Initial Progress Update
-
-| Program | Version | Percent | RAG | Author | Text |
-|---------|---------|---------|-----|--------|------|
-| Screen candidate compound library | 1 | 15 | Green | Dr. Sarah Chen | Initiated screening of 2,847 compounds from CDK4/6 focused library. High-throughput assay validated and running. |
+- **18 org units** across 6 levels (Enterprise, Business Unit, Function, Department, Individual)
+- **21 goal items** across 4 levels (Pillar, Category, Goal, Program)
+- **4 Programs**: AE-SENTINEL, VBP-142 Phase II Readiness, KOL-INSIGHTS, LAUNCH-READY
+- **6 skills** mapped to 6 personas across 2 chains
+- **3 Pillars**: Advance Pipeline, Improve Patient Outcomes, Develop Our People
 
 #### Pre-Registered Skills
 
 | Person | Skill Name | Type | Description |
 |--------|-----------|------|-------------|
-| Dr. Sarah Chen | Compound Efficacy Analysis | personal | High-throughput screening and efficacy profiling of candidate compounds |
-| Dr. James Rivera | Biomarker Identification & Validation | personal | Identification and validation of predictive biomarkers from genomic data and patient samples |
-| Dr. Priya Sharma | Clinical Trial Feasibility Assessment | team | End-to-end clinical trial feasibility assessment including protocol design, site selection, recruitment projections |
+| Dr. Elena Vasquez | MSL Insight Reporter | personal | Captures and structures KOL interaction insights from the field |
+| Marcus Chen | Med Affairs Aggregator | personal | Aggregates field insights into regional trend reports |
+| Sarah Okonkwo | Commercial Strategist | personal | Translates medical insights into commercial launch strategies |
+| Dr. James Park | CRA Site Monitor | personal | Monitors clinical sites and flags adverse event signals |
+| Dr. Amara Osei | Patient Safety Evaluator | personal | Evaluates AE signals and produces safety assessments |
+| Dr. Richard Stein | Medical Director Reviewer | personal | Reviews safety escalations and issues medical directives |
 
-### 10.4 Seed Script Implementation
+### 10.4 Seed Script
 
-File: `seed.ts` (project root)
+The seed data is now a SQL file rather than a TypeScript seed script. See `seeds/vantage-biopharma-seed.sql` for the complete implementation.
 
-```typescript
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
-
-async function main() {
-  // ================================================================
-  // 1. ORG UNITS
-  // ================================================================
-  const az = await prisma.org_units.create({
-    data: {
-      org_level: "Enterprise",
-      name: "AstraZeneca",
-      description: "AstraZeneca PLC - Global biopharmaceutical company",
-      status: "Active",
-    },
-  });
-
-  const oncRD = await prisma.org_units.create({
-    data: {
-      parent_id: az.id,
-      org_level: "Business Unit",
-      name: "Oncology R&D",
-      description: "Oncology Research & Development",
-      status: "Active",
-    },
-  });
-
-  const clinDev = await prisma.org_units.create({
-    data: {
-      parent_id: az.id,
-      org_level: "Business Unit",
-      name: "Clinical Development",
-      description: "Clinical Development Operations",
-      status: "Active",
-    },
-  });
-
-  const oncDS = await prisma.org_units.create({
-    data: {
-      parent_id: oncRD.id,
-      org_level: "Department",
-      name: "Oncology Data Science",
-      description: "Data science and computational biology for oncology",
-      status: "Active",
-    },
-  });
-
-  const transSci = await prisma.org_units.create({
-    data: {
-      parent_id: oncRD.id,
-      org_level: "Department",
-      name: "Translational Science",
-      description: "Translational science and biomarker development",
-      status: "Active",
-    },
-  });
-
-  const clinOps = await prisma.org_units.create({
-    data: {
-      parent_id: clinDev.id,
-      org_level: "Department",
-      name: "Clinical Operations",
-      description: "Clinical trial operations and feasibility",
-      status: "Active",
-    },
-  });
-
-  const sarah = await prisma.org_units.create({
-    data: {
-      parent_id: oncDS.id,
-      org_level: "Individual",
-      name: "Dr. Sarah Chen",
-      owner: "Dr. Sarah Chen",
-      description: "Lead Data Scientist - Oncology compound analysis",
-      status: "Active",
-    },
-  });
-
-  const james = await prisma.org_units.create({
-    data: {
-      parent_id: transSci.id,
-      org_level: "Individual",
-      name: "Dr. James Rivera",
-      owner: "Dr. James Rivera",
-      description: "Senior Translational Scientist - Biomarker development",
-      status: "Active",
-    },
-  });
-
-  const priya = await prisma.org_units.create({
-    data: {
-      parent_id: clinOps.id,
-      org_level: "Individual",
-      name: "Dr. Priya Sharma",
-      owner: "Dr. Priya Sharma",
-      description: "Clinical Development Lead - Trial feasibility",
-      status: "Active",
-    },
-  });
-
-  console.log("Org units created.");
-
-  // ================================================================
-  // 2. GOAL HIERARCHY
-  // ================================================================
-  const pillar = await prisma.goal_items.create({
-    data: {
-      org_unit_id: oncRD.id,
-      goal_level: "Pillar",
-      name: "Advance Novel Oncology Therapeutics",
-      description: "Strategic pillar for advancing novel oncology therapeutic programs",
-      status: "Active",
-    },
-  });
-
-  const category = await prisma.goal_items.create({
-    data: {
-      parent_id: pillar.id,
-      org_unit_id: oncRD.id,
-      goal_level: "Category",
-      name: "CDK4/6 Inhibitor Program",
-      description: "Next-generation CDK4/6 inhibitor development program",
-      status: "Active",
-    },
-  });
-
-  const goalLead = await prisma.goal_items.create({
-    data: {
-      parent_id: category.id,
-      org_unit_id: oncDS.id,
-      goal_level: "Goal",
-      name: "Identify Lead Compound",
-      description: "Identify and validate a lead CDK4/6 inhibitor compound",
-      owner: "Dr. Sarah Chen",
-      status: "Active",
-    },
-  });
-
-  const goalBiomarker = await prisma.goal_items.create({
-    data: {
-      parent_id: category.id,
-      org_unit_id: transSci.id,
-      goal_level: "Goal",
-      name: "Validate Predictive Biomarkers",
-      description: "Identify and validate predictive biomarkers for patient selection",
-      owner: "Dr. James Rivera",
-      status: "Active",
-    },
-  });
-
-  const goalFeasibility = await prisma.goal_items.create({
-    data: {
-      parent_id: category.id,
-      org_unit_id: clinOps.id,
-      goal_level: "Goal",
-      name: "Assess Clinical Feasibility",
-      description: "Assess feasibility of Phase I/II clinical trial",
-      owner: "Dr. Priya Sharma",
-      status: "Active",
-    },
-  });
-
-  // Programs for Sarah
-  const progScreen = await prisma.goal_items.create({
-    data: {
-      parent_id: goalLead.id,
-      org_unit_id: oncDS.id,
-      goal_level: "Program",
-      name: "Screen candidate compound library",
-      description: "High-throughput screening of CDK4/6 focused compound library",
-      owner: "Dr. Sarah Chen",
-      status: "Active",
-      start_date: new Date("2026-01-01"),
-      end_date: new Date("2026-03-31"),
-    },
-  });
-
-  const progEfficacy = await prisma.goal_items.create({
-    data: {
-      parent_id: goalLead.id,
-      org_unit_id: oncDS.id,
-      goal_level: "Program",
-      name: "In-vitro efficacy profiling",
-      description: "In-vitro efficacy and selectivity profiling of screening hits",
-      owner: "Dr. Sarah Chen",
-      status: "Active",
-      start_date: new Date("2026-01-01"),
-      end_date: new Date("2026-06-30"),
-    },
-  });
-
-  const progSelection = await prisma.goal_items.create({
-    data: {
-      parent_id: goalLead.id,
-      org_unit_id: oncDS.id,
-      goal_level: "Program",
-      name: "Lead candidate selection",
-      description: "Select lead candidate based on efficacy, selectivity, and ADMET profile",
-      owner: "Dr. Sarah Chen",
-      status: "Active",
-      start_date: new Date("2026-04-01"),
-      end_date: new Date("2026-06-30"),
-    },
-  });
-
-  // Programs for James
-  const progBiomarkerID = await prisma.goal_items.create({
-    data: {
-      parent_id: goalBiomarker.id,
-      org_unit_id: transSci.id,
-      goal_level: "Program",
-      name: "Identify candidate biomarkers",
-      description: "Identify candidate biomarker panel from literature and genomic data",
-      owner: "Dr. James Rivera",
-      status: "Active",
-      start_date: new Date("2026-04-01"),
-      end_date: new Date("2026-06-30"),
-    },
-  });
-
-  const progRetro = await prisma.goal_items.create({
-    data: {
-      parent_id: goalBiomarker.id,
-      org_unit_id: transSci.id,
-      goal_level: "Program",
-      name: "Retrospective patient sample analysis",
-      description: "Retrospective analysis of archived patient samples for biomarker validation",
-      owner: "Dr. James Rivera",
-      status: "Active",
-      start_date: new Date("2026-04-01"),
-      end_date: new Date("2026-09-30"),
-    },
-  });
-
-  const progCriteria = await prisma.goal_items.create({
-    data: {
-      parent_id: goalBiomarker.id,
-      org_unit_id: transSci.id,
-      goal_level: "Program",
-      name: "Define patient selection criteria",
-      description: "Establish patient selection criteria based on validated biomarkers",
-      owner: "Dr. James Rivera",
-      status: "Active",
-      start_date: new Date("2026-07-01"),
-      end_date: new Date("2026-09-30"),
-    },
-  });
-
-  // Programs for Priya
-  const progProtocol = await prisma.goal_items.create({
-    data: {
-      parent_id: goalFeasibility.id,
-      org_unit_id: clinOps.id,
-      goal_level: "Program",
-      name: "Trial protocol design",
-      description: "Draft Phase I/II clinical trial protocol",
-      owner: "Dr. Priya Sharma",
-      status: "Active",
-      start_date: new Date("2026-07-01"),
-      end_date: new Date("2026-09-30"),
-    },
-  });
-
-  const progRecruitment = await prisma.goal_items.create({
-    data: {
-      parent_id: goalFeasibility.id,
-      org_unit_id: clinOps.id,
-      goal_level: "Program",
-      name: "Site and patient recruitment assessment",
-      description: "Assess site feasibility and patient recruitment projections",
-      owner: "Dr. Priya Sharma",
-      status: "Active",
-      start_date: new Date("2026-07-01"),
-      end_date: new Date("2026-12-31"),
-    },
-  });
-
-  const progEndpoint = await prisma.goal_items.create({
-    data: {
-      parent_id: goalFeasibility.id,
-      org_unit_id: clinOps.id,
-      goal_level: "Program",
-      name: "Endpoint definition and statistical design",
-      description: "Finalize primary/secondary endpoints and statistical analysis plan",
-      owner: "Dr. Priya Sharma",
-      status: "Active",
-      start_date: new Date("2026-10-01"),
-      end_date: new Date("2026-12-31"),
-    },
-  });
-
-  console.log("Goal hierarchy created.");
-
-  // ================================================================
-  // 3. PROGRAM OBJECTIVES
-  // ================================================================
-  const objectives = [
-    { program_id: progScreen.id, quarter: "Q1", objective_text: "Complete high-throughput screening of CDK4/6 focused compound library" },
-    { program_id: progEfficacy.id, quarter: "Q1", objective_text: "Initiate in-vitro assays for top screening hits" },
-    { program_id: progEfficacy.id, quarter: "Q2", objective_text: "Complete efficacy and selectivity profiling of lead candidates" },
-    { program_id: progSelection.id, quarter: "Q2", objective_text: "Select lead candidate based on efficacy, selectivity, and ADMET profile" },
-    { program_id: progBiomarkerID.id, quarter: "Q2", objective_text: "Identify candidate biomarker panel from literature and genomic data" },
-    { program_id: progRetro.id, quarter: "Q2", objective_text: "Begin retrospective analysis of archived patient samples" },
-    { program_id: progRetro.id, quarter: "Q3", objective_text: "Complete patient sample analysis and validate biomarker correlations" },
-    { program_id: progCriteria.id, quarter: "Q3", objective_text: "Establish patient selection criteria based on validated biomarkers" },
-    { program_id: progProtocol.id, quarter: "Q3", objective_text: "Draft Phase I/II clinical trial protocol" },
-    { program_id: progRecruitment.id, quarter: "Q3", objective_text: "Initiate site feasibility assessments" },
-    { program_id: progRecruitment.id, quarter: "Q4", objective_text: "Complete recruitment projections and site selection" },
-    { program_id: progEndpoint.id, quarter: "Q4", objective_text: "Finalize primary/secondary endpoints and statistical analysis plan" },
-  ];
-
-  for (const obj of objectives) {
-    await prisma.program_objectives.create({
-      data: {
-        program_id: obj.program_id,
-        quarter: obj.quarter as any,
-        year: 2026,
-        objective_text: obj.objective_text,
-        status: "Active",
-      },
-    });
-  }
-
-  console.log("Program objectives created.");
-
-  // ================================================================
-  // 4. GOAL ALIGNMENTS
-  // ================================================================
-  const alignments = [
-    // Cross-function dependencies
-    { child_goal_id: progBiomarkerID.id, parent_goal_id: progSelection.id, alignment_type: "primary" },
-    { child_goal_id: progProtocol.id, parent_goal_id: progCriteria.id, alignment_type: "primary" },
-    { child_goal_id: progRecruitment.id, parent_goal_id: progCriteria.id, alignment_type: "secondary" },
-    // Structural alignments
-    { child_goal_id: category.id, parent_goal_id: pillar.id, alignment_type: "primary" },
-    { child_goal_id: goalLead.id, parent_goal_id: category.id, alignment_type: "primary" },
-    { child_goal_id: goalBiomarker.id, parent_goal_id: category.id, alignment_type: "primary" },
-    { child_goal_id: goalFeasibility.id, parent_goal_id: category.id, alignment_type: "primary" },
-  ];
-
-  for (const align of alignments) {
-    await prisma.goal_alignments.create({
-      data: {
-        child_goal_id: align.child_goal_id,
-        parent_goal_id: align.parent_goal_id,
-        alignment_type: align.alignment_type as any,
-        alignment_strength: 1.0,
-      },
-    });
-  }
-
-  console.log("Goal alignments created.");
-
-  // ================================================================
-  // 5. INITIAL PROGRESS UPDATE
-  // ================================================================
-  await prisma.progress_updates.create({
-    data: {
-      program_id: progScreen.id,
-      version: 1,
-      update_text: "Initiated screening of 2,847 compounds from CDK4/6 focused library. High-throughput assay validated and running.",
-      percent_complete: 15,
-      rag_status: "Green",
-      author: "Dr. Sarah Chen",
-      metrics: {
-        compounds_screened: 427,
-        total_compounds: 2847,
-        hit_rate: 0.032,
-        assay_z_prime: 0.78,
-      },
-    },
-  });
-
-  console.log("Initial progress update created.");
-
-  // ================================================================
-  // 6. PRE-REGISTERED SKILLS (in the collaboration tables)
-  // ================================================================
-  await prisma.skills.create({
-    data: {
-      person_name: "Dr. Sarah Chen",
-      skill_name: "Compound Efficacy Analysis",
-      skill_type: "personal",
-      description: "High-throughput screening and efficacy profiling of candidate compounds. Analyzes compound libraries against target profiles, ranks candidates by efficacy scores, and provides selectivity data for lead selection.",
-      input_spec: {
-        required: ["compound_library", "target_profile"],
-        optional: ["selectivity_panel", "admet_criteria"],
-        description: "Compound library dataset and CDK4/6 target binding profile",
-      },
-      output_spec: {
-        produces: ["ranked_candidates", "efficacy_scores", "selectivity_data"],
-        format: "JSON with compound IDs, scores, and selectivity ratios",
-        description: "Ranked candidate compounds with efficacy scores and selectivity data",
-      },
-    },
-  });
-
-  await prisma.skills.create({
-    data: {
-      person_name: "Dr. James Rivera",
-      skill_name: "Biomarker Identification & Validation",
-      skill_type: "personal",
-      description: "Identification and validation of predictive biomarkers from genomic data and patient samples. Produces validated biomarker panels and patient selection criteria for clinical development.",
-      input_spec: {
-        required: ["lead_compounds", "patient_sample_data"],
-        optional: ["genomic_database", "literature_references"],
-        description: "Lead compound data from efficacy analysis and archived patient sample data",
-      },
-      output_spec: {
-        produces: ["validated_biomarker_panel", "patient_selection_criteria", "correlation_data"],
-        format: "JSON with biomarker IDs, validation statistics, and selection thresholds",
-        description: "Validated biomarker panel with patient selection criteria",
-      },
-    },
-  });
-
-  await prisma.skills.create({
-    data: {
-      person_name: "Dr. Priya Sharma",
-      skill_name: "Clinical Trial Feasibility Assessment",
-      skill_type: "team",
-      description: "End-to-end clinical trial feasibility assessment including protocol design, site selection, patient recruitment projections, and endpoint definition. Requires inputs from compound and biomarker teams.",
-      input_spec: {
-        required: ["biomarker_criteria", "compound_data", "target_indication"],
-        optional: ["site_database", "historical_enrollment_data"],
-        description: "Biomarker selection criteria, lead compound profile, and target indication details",
-      },
-      output_spec: {
-        produces: ["feasibility_report", "protocol_recommendations", "recruitment_projections"],
-        format: "JSON with feasibility scores, protocol outline, and projected timelines",
-        description: "Comprehensive feasibility report with protocol recommendations and recruitment projections",
-      },
-    },
-  });
-
-  console.log("Skills pre-registered.");
-  console.log("\nSeed data inserted successfully.");
-}
-
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
-```
+Run: `psql $DATABASE_URL -f seeds/vantage-biopharma-seed.sql`
 
 ---
 
 ## 11. Demo Walkthrough
 
-The prototype demonstrates a collaboration scenario across AstraZeneca's oncology R&D. Three Claude instances, each representing a different persona, use the MCP tools to advance a CDK4/6 inhibitor program.
+The prototype demonstrates two collaboration chains across Vantage Biopharma. Each chain has 3 personas using MCP tools to advance their respective programs.
 
-### ACT 1 -- Dr. Sarah Chen (Oncology Data Scientist)
+### Chain A -- KOL Insights (Field insight to commercial strategy)
 
-**Step 1**: Query her goals
-```
-Tool: get_goals_for_person({ person_name: "Dr. Sarah Chen" })
-Expected: Returns 3 Goals + 3 Programs she owns
-```
+**ACT 1 -- Dr. Elena Vasquez** (MSL Insight Reporter, Field Medical)
+1. Queries her goals via `get_goals_for_person`
+2. Reads her SKILL.md and captures a KOL interaction insight
+3. Submits output via `submit_skill_output` (insight report linked to KOL-INSIGHTS program)
+4. Requests Marcus's review via `request_feedback`
+5. Updates scorecard via `add_progress_update`
 
-**Step 2**: List her skills
-```
-Tool: list_skills({ person_name: "Dr. Sarah Chen" })
-Expected: Returns "Compound Efficacy Analysis" skill
-```
+**ACT 2 -- Marcus Chen** (Med Affairs Aggregator, Medical Operations)
+1. Checks pending reviews via `get_pending_reviews` (sees Elena's insight)
+2. Submits feedback on Elena's work via `submit_feedback`
+3. Aggregates insights into regional trend report
+4. Submits output via `submit_skill_output`
+5. Requests Sarah's review via `request_feedback`
+6. Updates scorecard
 
-**Step 3**: (Agent performs compound analysis work using the skill SKILL.md as guidance)
+**ACT 3 -- Sarah Okonkwo** (Commercial Strategist, Launch Strategy)
+1. Gets upstream outputs via `get_upstream_outputs` (sees Elena's insight + Marcus's trends)
+2. Reviews Marcus's feedback request
+3. Produces launch positioning strategy
+4. Submits output and updates scorecard
 
-**Step 4**: Submit her output
-```
-Tool: submit_skill_output({
-  skill_id: 1,
-  person_name: "Dr. Sarah Chen",
-  goal_name: "Screen candidate compound library",
-  output_data: {
-    candidates: [
-      { compound_id: "AZD-4891", efficacy_score: 0.94, selectivity_cdk46: 47.2 },
-      { compound_id: "AZD-5023", efficacy_score: 0.87, selectivity_cdk46: 38.1 },
-      { compound_id: "AZD-3177", efficacy_score: 0.82, selectivity_cdk46: 41.5 }
-    ],
-    top_compound: "AZD-4891",
-    total_screened: 2847,
-    hit_rate: 0.032
-  },
-  output_summary: "Screened 2,847 compounds from CDK4/6 focused library. Top candidate AZD-4891 shows 94% efficacy with 47x CDK4/6 selectivity over CDK2."
-})
-```
+### Chain B -- AE Escalation (Safety signal to medical directive)
 
-**Step 5**: Request James's review
-```
-Tool: request_feedback({
-  skill_output_id: 1,
-  requested_by: "Dr. Sarah Chen",
-  requested_from: "Dr. James Rivera",
-  request_message: "Review lead candidates for biomarker validation suitability. Specifically interested in whether AZD-4891's target profile is amenable to predictive biomarker development."
-})
-```
+**ACT 4 -- Dr. James Park** (CRA Site Monitor, Site Operations)
+1. Queries his goals and monitors site data
+2. Flags an adverse event signal from a clinical site
+3. Submits AE report via `submit_skill_output` (linked to AE-SENTINEL program)
+4. Requests Amara's review via `request_feedback`
+5. Updates scorecard
 
-**Step 6**: Update scorecard progress
-```
-Tool: add_progress_update({
-  program_id: <screen_program_id>,
-  update_text: "Completed screening of full compound library. Lead candidate AZD-4891 identified with 94% efficacy and 47x CDK4/6 selectivity. Ready for biomarker team handoff.",
-  percent_complete: 100,
-  rag_status: "Complete",
-  author: "Dr. Sarah Chen",
-  metrics: {
-    compounds_screened: 2847,
-    hits_identified: 91,
-    top_candidate: "AZD-4891",
-    efficacy_score: 0.94,
-    selectivity_ratio: 47.2
-  }
-})
-```
+**ACT 5 -- Dr. Amara Osei** (Patient Safety Evaluator)
+1. Checks pending reviews (sees James's AE report)
+2. Evaluates the AE signal and produces safety assessment
+3. Submits output and requests Richard's review
+4. Updates scorecard
 
-### ACT 2 -- Dr. James Rivera (Translational Scientist)
-
-**Step 1**: Check pending reviews
-```
-Tool: get_pending_reviews({ person_name: "Dr. James Rivera" })
-Expected: Returns Sarah's feedback request with her compound screening output
-```
-
-**Step 2**: Review and submit feedback
-```
-Tool: submit_feedback({
-  feedback_request_id: 1,
-  response_text: "AZD-4891 shows promising CDK4/6 selectivity (47x over CDK2). The high selectivity ratio suggests CCND1 amplification and RB1 status will be strong predictive biomarkers. Recommend proceeding with this compound for biomarker panel development. Will incorporate AZD-4891 target profile into biomarker identification workflow."
-})
-```
-
-**Step 3**: (Agent performs biomarker identification work)
-
-**Step 4**: Submit biomarker output
-```
-Tool: submit_skill_output({
-  skill_id: 2,
-  person_name: "Dr. James Rivera",
-  goal_name: "Identify candidate biomarkers",
-  output_data: {
-    biomarker_panel: [
-      { marker: "CCND1 amplification", type: "genomic", predictive_value: 0.89 },
-      { marker: "RB1 wild-type status", type: "genomic", predictive_value: 0.91 },
-      { marker: "p16 loss", type: "protein", predictive_value: 0.78 },
-      { marker: "CDK4 expression level", type: "protein", predictive_value: 0.72 }
-    ],
-    recommended_patient_criteria: "CCND1-amplified, RB1-wt, with p16 loss",
-    sample_size_analyzed: 342
-  },
-  output_summary: "Identified 4-marker biomarker panel. CCND1 amplification (89% predictive) and RB1 wild-type (91% predictive) are primary markers. Recommend patient selection: CCND1-amplified, RB1-wt with p16 loss."
-})
-```
-
-**Step 5**: Request Priya's review
-```
-Tool: request_feedback({
-  skill_output_id: 2,
-  requested_by: "Dr. James Rivera",
-  requested_from: "Dr. Priya Sharma",
-  request_message: "Please review the biomarker panel and patient selection criteria for clinical trial feasibility. Key question: Is the CCND1-amplified/RB1-wt/p16-loss population large enough for recruitment?"
-})
-```
-
-**Step 6**: Update scorecard
-```
-Tool: add_progress_update({
-  program_id: <biomarker_program_id>,
-  update_text: "Biomarker panel identified: CCND1 amplification and RB1 wild-type status as primary predictive markers. Panel validated against 342 archived samples.",
-  percent_complete: 100,
-  rag_status: "Complete",
-  author: "Dr. James Rivera"
-})
-```
-
-### ACT 3 -- Dr. Priya Sharma (Clinical Development Lead)
-
-**Step 1**: Get upstream outputs
-```
-Tool: get_upstream_outputs({ goal_name: "Trial protocol design" })
-Expected: Returns Sarah's compound data and James's biomarker criteria
-```
-
-**Step 2**: Check pending reviews
-```
-Tool: get_pending_reviews({ person_name: "Dr. Priya Sharma" })
-Expected: Returns James's feedback request
-```
-
-**Step 3**: Submit feedback
-```
-Tool: submit_feedback({
-  feedback_request_id: 2,
-  response_text: "The CCND1-amplified/RB1-wt/p16-loss triple-positive population represents approximately 18-22% of HR+ breast cancer patients. This is a feasible recruitment target for a Phase I/II study. Recommend 15-20 sites across North America and Europe for adequate enrollment velocity. Protocol design will incorporate these criteria as mandatory inclusion markers."
-})
-```
-
-**Step 4**: (Agent performs trial feasibility assessment)
-
-**Step 5**: Submit feasibility output
-```
-Tool: submit_skill_output({
-  skill_id: 3,
-  person_name: "Dr. Priya Sharma",
-  goal_name: "Trial protocol design",
-  output_data: {
-    feasibility_score: 0.82,
-    protocol_type: "Phase I/II adaptive",
-    estimated_enrollment: 120,
-    enrollment_timeline_months: 14,
-    recommended_sites: 18,
-    regions: ["North America", "Western Europe"],
-    primary_endpoint: "ORR by RECIST 1.1",
-    secondary_endpoints: ["PFS", "DOR", "CBR", "Safety/tolerability"],
-    inclusion_biomarkers: ["CCND1 amplification", "RB1 wild-type", "p16 loss"],
-    compound: "AZD-4891"
-  },
-  output_summary: "Phase I/II adaptive design feasible. 82% feasibility score. Target 120 patients across 18 sites in NA/EU. 14-month enrollment projection. AZD-4891 in CCND1-amp/RB1-wt/p16-loss HR+ breast cancer. Primary endpoint: ORR by RECIST 1.1."
-})
-```
-
-**Step 6**: Update scorecard
-```
-Tool: add_progress_update({
-  program_id: <protocol_program_id>,
-  update_text: "Phase I/II adaptive protocol drafted. Feasibility score 82%. AZD-4891 targeting CCND1-amplified/RB1-wt/p16-loss population. 18 sites, 120 patients, 14-month enrollment projected.",
-  percent_complete: 100,
-  rag_status: "Complete",
-  author: "Dr. Priya Sharma"
-})
-```
+**ACT 6 -- Dr. Richard Stein** (Medical Director Reviewer)
+1. Gets upstream outputs (sees James's AE data + Amara's assessment)
+2. Reviews the safety escalation
+3. Issues medical directive with regulatory recommendation
+4. Submits output and updates scorecard
 
 ### FINALE -- Check the Scorecard
 
 ```
 Tool: get_scorecard()
-Expected: Shows all 9 programs with updated RAG statuses:
-  - Sarah's 3 programs: Screen (Complete), Efficacy (Active/Green), Selection (Active/Not Started)
-  - James's 3 programs: Biomarkers (Complete), Retro (Active/Green), Criteria (Active/Not Started)
-  - Priya's 3 programs: Protocol (Complete), Recruitment (Active/Green), Endpoints (Active/Not Started)
+Expected: Shows all 4 programs with updated RAG statuses:
+  - AE-SENTINEL: progress updates from James > Amara > Richard chain
+  - VBP-142 Phase II Readiness: independent program progress
+  - KOL-INSIGHTS: progress updates from Elena > Marcus > Sarah chain
+  - LAUNCH-READY: downstream of KOL-INSIGHTS insights
 ```
 
-The scorecard shows the cascading progress: Sarah's compound work enabled James's biomarker validation, which enabled Priya's clinical feasibility assessment. The entire CDK4/6 program advances through cross-functional collaboration.
+The scorecard shows cascading progress across both chains. The database captures every handoff, feedback loop, and skill output as the work flows through the organization.
 
 ---
 
@@ -2318,16 +1517,18 @@ Use this checklist to track build progress:
 
 ### Phase 6: SKILL.md Files
 
-- [ ] Create `skills/compound-analysis/SKILL.md`
-- [ ] Create `skills/biomarker-validation/SKILL.md`
-- [ ] Create `skills/trial-feasibility/SKILL.md`
+- [ ] Create `skills/msl-insight-reporter/SKILL.md` (Dr. Elena Vasquez, Chain A)
+- [ ] Create `skills/med-affairs-aggregator/SKILL.md` (Marcus Chen, Chain A)
+- [ ] Create `skills/commercial-strategist/SKILL.md` (Sarah Okonkwo, Chain A)
+- [ ] Create `skills/cra-site-monitor/SKILL.md` (Dr. James Park, Chain B)
+- [ ] Create `skills/patient-safety-evaluator/SKILL.md` (Dr. Amara Osei, Chain B)
+- [ ] Create `skills/medical-director-reviewer/SKILL.md` (Dr. Richard Stein, Chain B)
 - [ ] Create `skills/scorecard-overview/SKILL.md`
 
 ### Phase 7: Seed Data
 
-- [ ] Create `seed.ts` at project root
-- [ ] Run seed script: `cd scorecard-mcp && npx tsx ../seed.ts`
-- [ ] Verify org units, goals, objectives, alignments, progress, and skills in database
+- [ ] Run seed: `psql $DATABASE_URL -f seeds/vantage-biopharma-seed.sql`
+- [ ] Verify 18 org units, 21 goals, objectives, alignments, progress, and 6 skills in database
 
 ### Phase 8: MCP Configuration
 
@@ -2339,10 +1540,9 @@ Use this checklist to track build progress:
 
 ### Phase 9: Demo Validation
 
-- [ ] Run through ACT 1 of the demo walkthrough (Sarah)
-- [ ] Run through ACT 2 of the demo walkthrough (James)
-- [ ] Run through ACT 3 of the demo walkthrough (Priya)
-- [ ] Run finale scorecard check
+- [ ] Run through Chain A: Elena > Marcus > Sarah (KOL Insights)
+- [ ] Run through Chain B: James > Amara > Richard (AE Escalation)
+- [ ] Run finale scorecard check (all 4 programs)
 
 ---
 

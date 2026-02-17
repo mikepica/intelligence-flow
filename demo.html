@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Riddle Enterprises Dashboard | AZ Intelligence Flow</title>
+  <title>Vantage Biopharma Dashboard | AZ Intelligence Flow</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,7 +37,6 @@
     .panel-reveal:nth-child(3) { transition-delay: 0.15s; }
     .panel-reveal:nth-child(4) { transition-delay: 0.20s; }
     .panel-reveal:nth-child(5) { transition-delay: 0.25s; }
-    .panel-reveal:nth-child(6) { transition-delay: 0.30s; }
 
     /* Skill chain data flow animation */
     @keyframes chainFlow {
@@ -130,6 +129,16 @@
 </head>
 <body class="font-sans bg-slate-950 text-slate-300 antialiased">
 
+  <!-- Cross-page Navigation -->
+  <nav class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-700/50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex items-center h-12 gap-6">
+      <span class="text-sm font-semibold text-white tracking-wide mr-4">Vantage Biopharma</span>
+      <a href="index.html" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">The Plan</a>
+      <a href="goals.html" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Demo: Scorecard</a>
+      <a href="demo.html" class="text-sm font-medium text-white border-b-2 border-purple-400 pb-0.5">Demo: GoalProgress/SkillExecution</a>
+    </div>
+  </nav>
+
   <div class="min-h-screen p-4 md:p-6 lg:p-8">
 
     <!-- Dashboard Header -->
@@ -137,47 +146,24 @@
       <div class="flex items-center justify-between">
         <div>
           <div class="flex items-center gap-3 mb-1">
-            <h1 class="text-2xl md:text-3xl font-bold text-white">Riddle Enterprises</h1>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Vantage Biopharma</h1>
             <span id="header-rag" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/15 text-slate-400">
               <span class="w-1.5 h-1.5 rounded-full bg-slate-400 rag-pulse"></span>
               Loading...
             </span>
           </div>
-          <p class="text-sm text-slate-400 font-light">
-            Scorecard Dashboard &mdash; Riddlemethis Program &mdash; Q1 2026
+          <p id="header-subtitle" class="text-sm text-slate-400 font-light">
+            Scorecard Dashboard &mdash; Q1 2026
           </p>
+          <p id="header-breadcrumb" class="text-xs text-slate-500 mt-1"></p>
         </div>
-        <a href="index.html" class="text-xs text-purple-400 hover:text-purple-300 transition-colors hidden sm:block">
-          &larr; Back to Overview
-        </a>
       </div>
     </header>
 
-    <!-- 6-Panel Grid -->
+    <!-- 5-Panel Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
 
-      <!-- Panel 1: Org Tree -->
-      <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-              <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            </div>
-            <h3 class="text-sm font-semibold text-white tracking-wide">Organization</h3>
-          </div>
-          <span id="org-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full"></span>
-        </div>
-        <div class="p-5" id="org-tree-content">
-          <div class="space-y-2">
-            <div class="skeleton h-5 w-3/4"></div>
-            <div class="skeleton h-5 w-1/2 ml-8"></div>
-            <div class="skeleton h-5 w-2/5 ml-16"></div>
-            <div class="skeleton h-5 w-2/5 ml-16"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel 2: Goal Cascade -->
+      <!-- Panel 1: Goal Cascade -->
       <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
           <div class="flex items-center gap-3">
@@ -201,7 +187,7 @@
         </div>
       </div>
 
-      <!-- Panel 3: Scorecard -->
+      <!-- Panel 2: Scorecard -->
       <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
           <div class="flex items-center gap-3">
@@ -226,26 +212,7 @@
         </div>
       </div>
 
-      <!-- Panel 4: Skills Registry -->
-      <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
-            </div>
-            <h3 class="text-sm font-semibold text-white tracking-wide">Skills Registry</h3>
-          </div>
-          <span id="skills-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full"></span>
-        </div>
-        <div class="p-5" id="skills-content">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="skeleton h-40 rounded-lg"></div>
-            <div class="skeleton h-40 rounded-lg"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panel 5: Skill Chain -->
+      <!-- Panel 3: Skill Chain (auto-selects chain based on program) -->
       <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
           <div class="flex items-center gap-3">
@@ -254,7 +221,7 @@
             </div>
             <h3 class="text-sm font-semibold text-white tracking-wide">Skill Chain</h3>
           </div>
-          <span class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">2-step pipeline</span>
+          <span id="chain-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full">3-step pipeline</span>
         </div>
         <div class="p-5" id="skill-chain-content">
           <div class="space-y-4">
@@ -268,7 +235,30 @@
         </div>
       </div>
 
-      <!-- Panel 6: Activity Timeline -->
+      <!-- Panel 4: Skills Registry (spans 2 cols on lg) -->
+      <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden lg:col-span-2">
+        <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+              <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </div>
+            <h3 class="text-sm font-semibold text-white tracking-wide">Skills Registry</h3>
+          </div>
+          <span id="skills-badge" class="text-xs text-slate-400 bg-slate-800 px-2 py-0.5 rounded-full"></span>
+        </div>
+        <div class="p-5" id="skills-content">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="skeleton h-40 rounded-lg"></div>
+            <div class="skeleton h-40 rounded-lg"></div>
+            <div class="skeleton h-40 rounded-lg"></div>
+            <div class="skeleton h-40 rounded-lg"></div>
+            <div class="skeleton h-40 rounded-lg"></div>
+            <div class="skeleton h-40 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 5: Activity Timeline -->
       <div class="dashboard-panel panel-reveal bg-slate-900 rounded-xl border border-slate-700/50 overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b border-slate-800">
           <div class="flex items-center gap-3">

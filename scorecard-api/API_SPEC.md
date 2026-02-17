@@ -21,37 +21,37 @@ No parameters.
   "data": [
     {
       "id": 1,
-      "name": "Riddle Enterprises",
+      "name": "Vantage Biopharma",
       "org_level": "Enterprise",
-      "description": "Creative intelligence organization...",
-      "owner": "Mike Pica",
+      "description": "Vantage Biopharma - Global pharmaceutical company",
+      "owner": null,
       "status": "Active",
       "children": [
         {
           "id": 2,
-          "name": "Riddle Workshop",
-          "org_level": "Department",
-          "description": "Collaborative riddle creation...",
-          "owner": "Mike Pica",
-          "status": "Active",
+          "name": "Oncology Business Unit",
+          "org_level": "Business Unit",
           "children": [
             {
-              "id": 3,
-              "name": "The Riddler",
-              "org_level": "Individual",
-              "description": "Creates basic riddles from prompts",
-              "owner": "The Riddler",
-              "status": "Active",
-              "children": []
-            },
-            {
               "id": 4,
-              "name": "The Sphinx",
-              "org_level": "Individual",
-              "description": "Deepens riddles into three-layer enigmas",
-              "owner": "The Sphinx",
-              "status": "Active",
-              "children": []
+              "name": "Medical Affairs",
+              "org_level": "Function",
+              "children": [
+                {
+                  "id": 7,
+                  "name": "Field Medical",
+                  "org_level": "Department",
+                  "children": [
+                    {
+                      "id": 13,
+                      "name": "Dr. Elena Vasquez",
+                      "org_level": "Individual",
+                      "owner": "Dr. Elena Vasquez",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -104,34 +104,34 @@ Returns the goal hierarchy (Pillar > Category > Goal > Program) for a given org 
   "data": {
     "org_unit": {
       "id": 1,
-      "name": "Riddle Enterprises",
+      "name": "Vantage Biopharma",
       "org_level": "Enterprise"
     },
     "goals": [
       {
         "id": 1,
         "goal_level": "Pillar",
-        "name": "Creative Intelligence",
-        "description": "Drive creative output...",
-        "owner": "Mike Pica",
+        "name": "Advance Pipeline",
+        "description": "Advance the clinical pipeline...",
+        "owner": null,
         "status": "Active",
-        "org_unit_name": "Riddle Enterprises",
+        "org_unit_name": "Vantage Biopharma",
         "weight": 1.00,
         "children": [
           {
-            "id": 2,
+            "id": 4,
             "goal_level": "Category",
-            "name": "Riddle Mastery",
+            "name": "Clinical Excellence",
             "children": [
               {
-                "id": 3,
+                "id": 9,
                 "goal_level": "Goal",
-                "name": "Generate 10 quality riddles by end of Q1 2026",
+                "name": "Patient Safety Monitoring",
                 "children": [
                   {
-                    "id": 4,
+                    "id": 18,
                     "goal_level": "Program",
-                    "name": "Riddlemethis"
+                    "name": "AE-SENTINEL"
                   }
                 ]
               }
@@ -142,13 +142,12 @@ Returns the goal hierarchy (Pillar > Category > Goal > Program) for a given org 
     ],
     "alignments": [
       {
-        "child_goal_id": 4,
-        "child_goal_name": "Riddlemethis",
-        "parent_goal_id": 3,
-        "parent_goal_name": "Generate 10 quality riddles by end of Q1 2026",
+        "child_goal_id": 18,
+        "child_goal_name": "AE-SENTINEL",
+        "parent_goal_id": 9,
+        "parent_goal_name": "Patient Safety Monitoring",
         "alignment_type": "primary",
-        "alignment_strength": 1.00,
-        "notes": "Riddlemethis program directly advances the Q1 riddle generation goal"
+        "alignment_strength": 1.00
       }
     ]
   }
@@ -217,44 +216,32 @@ Returns all registered skills with their input/output specs and chain metadata.
   "data": [
     {
       "id": 1,
-      "person_name": "The Riddler",
-      "skill_name": "Riddle Maker",
+      "person_name": "Dr. Elena Vasquez",
+      "skill_name": "MSL Insight Reporter",
       "skill_type": "personal",
-      "description": "Takes a prompt or topic and creates a semi-basic riddle...",
-      "input_spec": {
-        "type": "object",
-        "properties": {
-          "topic": { "type": "string", "description": "The subject or prompt..." }
-        },
-        "required": ["topic"]
-      },
-      "output_spec": {
-        "type": "object",
-        "properties": {
-          "topic": { "type": "string" },
-          "riddle": { "type": "string" },
-          "answer": { "type": "string" },
-          "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] }
-        },
-        "required": ["topic", "riddle", "answer", "difficulty"]
-      },
+      "description": "Captures and structures KOL interaction insights from the field...",
+      "input_spec": { "..." : "..." },
+      "output_spec": { "..." : "..." },
       "metadata": {
-        "skill_file": "skills/riddle-maker/SKILL.md",
-        "chain_next": "The Sphinx"
+        "skill_file": "skills/msl-insight-reporter/SKILL.md",
+        "chain": "A",
+        "chain_next": "Marcus Chen"
       },
       "output_count": 3
     },
     {
       "id": 2,
-      "person_name": "The Sphinx",
-      "skill_name": "Riddle Deepener",
+      "person_name": "Marcus Chen",
+      "skill_name": "Med Affairs Aggregator",
       "skill_type": "personal",
-      "description": "Takes a basic riddle and transforms it into a three-layer deep riddle...",
+      "description": "Aggregates field insights into regional trend reports...",
       "input_spec": { "..." : "..." },
       "output_spec": { "..." : "..." },
       "metadata": {
-        "skill_file": "skills/riddle-deepener/SKILL.md",
-        "chain_prev": "The Riddler"
+        "skill_file": "skills/med-affairs-aggregator/SKILL.md",
+        "chain": "A",
+        "chain_prev": "Dr. Elena Vasquez",
+        "chain_next": "Sarah Okonkwo"
       },
       "output_count": 2
     }
@@ -311,24 +298,24 @@ Returns skill execution outputs, optionally filtered. Supports the output timeli
     {
       "id": 1,
       "skill_id": 1,
-      "skill_name": "Riddle Maker",
-      "person_name": "The Riddler",
-      "goal_name": "Generate 10 quality riddles by end of Q1 2026",
+      "skill_name": "MSL Insight Reporter",
+      "person_name": "Dr. Elena Vasquez",
+      "goal_name": "KOL Engagement Insights",
       "output_data": {
-        "topic": "time",
-        "riddle": "I fly without wings...",
-        "answer": "A cloud",
-        "difficulty": "medium"
+        "kol_name": "Dr. Thompson",
+        "therapeutic_area": "oncology",
+        "key_insights": ["..."],
+        "engagement_type": "advisory board"
       },
-      "output_summary": "Medium-difficulty riddle about time",
+      "output_summary": "Captured KOL insight from Dr. Thompson on VBP-142 positioning",
       "status": "completed",
       "created_at": "2026-02-16T10:00:00Z",
       "feedback_requests": [
         {
           "id": 1,
-          "requested_from": "The Sphinx",
+          "requested_from": "Marcus Chen",
           "status": "completed",
-          "response_text": "Good foundation for deepening..."
+          "response_text": "Strong insight. Incorporating into regional trend analysis..."
         }
       ]
     }
@@ -399,23 +386,22 @@ Returns feedback requests with full context (skill output, skill info). Supports
   "data": [
     {
       "id": 1,
-      "requested_by": "The Riddler",
-      "requested_from": "The Sphinx",
-      "request_message": "Please review and deepen this riddle with 3 layers",
+      "requested_by": "Dr. Elena Vasquez",
+      "requested_from": "Marcus Chen",
+      "request_message": "Please review this KOL insight and incorporate into regional trends",
       "status": "completed",
-      "response_text": "Excellent foundation. I have created a three-layer version...",
+      "response_text": "Strong insight. Incorporating into regional trend analysis...",
       "responded_at": "2026-02-16T12:00:00Z",
       "created_at": "2026-02-16T10:05:00Z",
       "skill_output": {
         "id": 1,
-        "person_name": "The Riddler",
-        "goal_name": "Generate 10 quality riddles by end of Q1 2026",
-        "output_summary": "Medium-difficulty riddle about time",
-        "output_data": { "..." : "..." }
+        "person_name": "Dr. Elena Vasquez",
+        "goal_name": "KOL Engagement Insights",
+        "output_summary": "Captured KOL insight from Dr. Thompson on VBP-142 positioning"
       },
       "skill": {
         "id": 1,
-        "skill_name": "Riddle Maker",
+        "skill_name": "MSL Insight Reporter",
         "skill_type": "personal"
       }
     }
@@ -428,8 +414,6 @@ Returns feedback requests with full context (skill output, skill info). Supports
 `feedback_requests`, `skill_outputs`, `skills`
 
 ### SQL Approach
-
-Uses the `v_pending_feedback` view for pending/in_review, or a direct join for all statuses.
 
 ```sql
 SELECT fr.*,
@@ -483,23 +467,18 @@ Returns the program scorecard: each program with quarterly objectives, latest RA
 {
   "data": [
     {
-      "program_id": 4,
-      "program_name": "Riddlemethis",
-      "org_unit": "Riddle Workshop",
+      "program_id": 18,
+      "program_name": "AE-SENTINEL",
+      "org_unit": "Patient Safety",
       "org_level": "Department",
       "objectives": {
         "Q1": {
-          "objective_text": "Generate 10 riddles using the riddle-maker and riddle-deepener skill pipeline",
-          "target_value": 10.00,
-          "target_unit": "riddles",
+          "objective_text": "Establish AE signal detection framework and baseline monitoring",
+          "target_value": 1.00,
+          "target_unit": "framework",
           "status": "Active"
         },
-        "Q2": {
-          "objective_text": "Refine riddle quality based on Q1 learnings and expand to new topics",
-          "target_value": 15.00,
-          "target_unit": "riddles",
-          "status": "Active"
-        },
+        "Q2": null,
         "Q3": null,
         "Q4": null
       },
@@ -507,15 +486,10 @@ Returns the program scorecard: each program with quarterly objectives, latest RA
         "percent_complete": 0.00,
         "rag_status": "Not Started",
         "last_updated": "2026-02-16T00:00:00Z",
-        "update_text": "Program initiated. Riddle Maker and Riddle Deepener skills registered...",
-        "metrics": {
-          "riddles_created": 0,
-          "riddles_deepened": 0,
-          "target": 10,
-          "pipeline_status": "ready"
-        },
+        "update_text": "Program initiated. AE monitoring framework being established...",
+        "metrics": {},
         "version": 1,
-        "author": "Mike Pica"
+        "author": "Dr. James Park"
       }
     }
   ]
@@ -583,24 +557,19 @@ Returns all progress updates for a program, ordered by version descending. Shows
 {
   "data": {
     "program": {
-      "id": 4,
-      "name": "Riddlemethis",
-      "org_unit": "Riddle Workshop"
+      "id": 18,
+      "name": "AE-SENTINEL",
+      "org_unit": "Patient Safety"
     },
     "updates": [
       {
         "id": 1,
         "version": 1,
-        "update_text": "Program initiated. Riddle Maker and Riddle Deepener skills registered...",
+        "update_text": "Program initiated. AE monitoring framework being established...",
         "percent_complete": 0.00,
         "rag_status": "Not Started",
-        "metrics": {
-          "riddles_created": 0,
-          "riddles_deepened": 0,
-          "target": 10,
-          "pipeline_status": "ready"
-        },
-        "author": "Mike Pica",
+        "metrics": {},
+        "author": "Dr. James Park",
         "created_at": "2026-02-16T00:00:00Z"
       }
     ]
@@ -635,6 +604,155 @@ const updates = await prisma.progress_updates.findMany({
   ...(latest && { take: 1 })
 });
 ```
+
+---
+
+## 8. GET /api/scorecard/summary
+
+Returns a high-level summary of all programs with aggregate counts. Used by the CEO Goal View page.
+
+### Request
+
+No parameters.
+
+### Response
+
+```json
+{
+  "data": {
+    "total_programs": 4,
+    "total_goals": 21,
+    "total_org_units": 18,
+    "total_skills": 6,
+    "programs": [
+      {
+        "id": 18,
+        "name": "AE-SENTINEL",
+        "rag_status": "Not Started",
+        "percent_complete": 0.00,
+        "owner": "Dr. James Park"
+      },
+      {
+        "id": 19,
+        "name": "VBP-142 Phase II Readiness",
+        "rag_status": "Green",
+        "percent_complete": 15.00,
+        "owner": "Dr. Amara Osei"
+      },
+      {
+        "id": 20,
+        "name": "KOL-INSIGHTS",
+        "rag_status": "Not Started",
+        "percent_complete": 0.00,
+        "owner": "Dr. Elena Vasquez"
+      },
+      {
+        "id": 21,
+        "name": "LAUNCH-READY",
+        "rag_status": "Not Started",
+        "percent_complete": 0.00,
+        "owner": "Sarah Okonkwo"
+      }
+    ],
+    "rag_summary": {
+      "Green": 1,
+      "Amber": 0,
+      "Red": 0,
+      "Not Started": 3,
+      "Complete": 0
+    }
+  }
+}
+```
+
+### DB Tables/Views Queried
+
+`goal_items`, `org_units`, `skills`, `v_latest_progress`
+
+### SQL Approach
+
+```sql
+-- Aggregate counts
+SELECT
+  (SELECT COUNT(*) FROM goal_items WHERE goal_level = 'Program' AND status = 'Active') AS total_programs,
+  (SELECT COUNT(*) FROM goal_items WHERE status = 'Active') AS total_goals,
+  (SELECT COUNT(*) FROM org_units WHERE status = 'Active') AS total_org_units,
+  (SELECT COUNT(*) FROM skills) AS total_skills;
+
+-- Program summaries with latest progress
+SELECT gi.id, gi.name, gi.owner,
+       COALESCE(lp.rag_status, 'Not Started') AS rag_status,
+       COALESCE(lp.percent_complete, 0) AS percent_complete
+FROM goal_items gi
+LEFT JOIN v_latest_progress lp ON lp.program_id = gi.id
+WHERE gi.goal_level = 'Program' AND gi.status = 'Active'
+ORDER BY gi.name;
+```
+
+---
+
+## 9. GET /api/goal-tree/:orgId/dashboard/:goalId
+
+Returns a focused goal tree scoped to a specific goal and its descendants, with full progress and alignment data. Used when navigating from the CEO Goal View into a specific program dashboard.
+
+### Request
+
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `orgId` | path int | yes | Root org_unit ID |
+| `goalId` | path int | yes | The goal to focus on (typically a Program) |
+
+### Response
+
+```json
+{
+  "data": {
+    "goal": {
+      "id": 18,
+      "name": "AE-SENTINEL",
+      "goal_level": "Program",
+      "owner": "Dr. James Park",
+      "org_unit_name": "Patient Safety",
+      "status": "Active"
+    },
+    "ancestors": [
+      { "id": 1, "name": "Advance Pipeline", "goal_level": "Pillar" },
+      { "id": 4, "name": "Clinical Excellence", "goal_level": "Category" },
+      { "id": 9, "name": "Patient Safety Monitoring", "goal_level": "Goal" }
+    ],
+    "progress": {
+      "percent_complete": 0.00,
+      "rag_status": "Not Started",
+      "version": 1,
+      "update_text": "Program initiated..."
+    },
+    "objectives": [
+      {
+        "quarter": "Q1",
+        "objective_text": "Establish AE signal detection framework",
+        "target_value": 1.00,
+        "target_unit": "framework"
+      }
+    ],
+    "related_skills": [
+      {
+        "person_name": "Dr. James Park",
+        "skill_name": "CRA Site Monitor",
+        "output_count": 0
+      }
+    ],
+    "alignments": []
+  }
+}
+```
+
+### DB Tables Queried
+
+`goal_items`, `org_units`, `goal_alignments`, `progress_updates`, `program_objectives`, `skills`, `skill_outputs`
+
+### SQL Approach
+
+Walk up the goal hierarchy via `parent_id` to build ancestors. Then join with progress, objectives, and related skills.
 
 ---
 

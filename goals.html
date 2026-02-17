@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vantage Biopharma — Goal Overview | AZ Intelligence Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+
+    /* Panel entrance animation */
+    .panel-reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    }
+    .panel-reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .panel-reveal:nth-child(1) { transition-delay: 0.05s; }
+    .panel-reveal:nth-child(2) { transition-delay: 0.10s; }
+    .panel-reveal:nth-child(3) { transition-delay: 0.15s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn { animation: fadeIn 0.2s ease-out; }
+
+    @keyframes ragPulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.3); }
+    }
+    .rag-pulse { animation: ragPulse 2.5s ease-in-out infinite; }
+
+    /* Goal card transitions */
+    .goal-card {
+      transition: opacity 0.3s ease, max-height 0.4s ease, margin 0.3s ease, padding 0.3s ease;
+      overflow: hidden;
+    }
+    .goal-card.dimmed { opacity: 0.5; }
+    .goal-card.hidden-filter {
+      max-height: 0;
+      margin: 0;
+      padding: 0;
+      opacity: 0;
+      border: none;
+    }
+
+    /* Modal overlay */
+    .modal-backdrop { transition: opacity 0.2s ease; }
+    .modal-content { transition: transform 0.2s ease, opacity 0.2s ease; }
+
+    /* Flash highlight for alignment navigation */
+    @keyframes flashHighlight {
+      0% { box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.6); }
+      100% { box-shadow: 0 0 0 3px transparent; }
+    }
+    .flash-highlight { animation: flashHighlight 1.5s ease-out; }
+
+    .progress-fill { transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /* Skeleton loading pulse */
+    @keyframes skeletonPulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.7; }
+    }
+    .skeleton {
+      animation: skeletonPulse 1.5s ease-in-out infinite;
+      background: #1e293b;
+      border-radius: 4px;
+    }
+
+    /* Category collapse */
+    .category-children { transition: max-height 0.3s ease, opacity 0.2s ease; overflow: hidden; }
+    .category-children.collapsed { max-height: 0; opacity: 0; }
+
+    /* Scrollbar styling */
+    .modal-scroll::-webkit-scrollbar { width: 4px; }
+    .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+    .modal-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    /* Dashboard panel hover */
+    .pillar-panel {
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .pillar-panel:hover {
+      border-color: rgba(100, 116, 139, 0.5);
+      box-shadow: 0 0 20px rgba(15, 23, 42, 0.5);
+    }
+  </style>
+</head>
+<body class="font-sans bg-slate-950 text-slate-300 antialiased">
+
+  <!-- Cross-page Navigation -->
+  <nav class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-700/50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 flex items-center h-12 gap-6">
+      <span class="text-sm font-semibold text-white tracking-wide mr-4">Vantage Biopharma</span>
+      <a href="index.html" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">The Plan</a>
+      <a href="goals.html" class="text-sm font-medium text-white border-b-2 border-purple-400 pb-0.5">Demo: Scorecard</a>
+      <a href="demo.html" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">Demo: GoalProgress/SkillExecution</a>
+    </div>
+  </nav>
+
+  <div class="min-h-screen p-4 md:p-6 lg:p-8">
+
+    <!-- Header -->
+    <header class="mb-6 md:mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-1">
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Vantage Biopharma</h1>
+            <span id="header-rag" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/15 text-slate-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-slate-400 rag-pulse"></span>Loading...
+            </span>
+          </div>
+          <p class="text-sm text-slate-400 font-light">Enterprise Goal Overview &mdash; Q1 2026</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="mb-6 flex flex-wrap items-center gap-3" id="filter-bar">
+      <!-- Role toggle buttons -->
+      <div class="flex rounded-lg overflow-hidden border border-slate-700/50">
+        <button onclick="setRole('ceo')" data-role="ceo" class="role-btn px-3 py-1.5 text-xs font-medium bg-purple-500/20 text-purple-400 border-r border-slate-700/50">CEO</button>
+        <button onclick="setRole('manager')" data-role="manager" class="role-btn px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors border-r border-slate-700/50">Manager</button>
+        <button onclick="setRole('individual')" data-role="individual" class="role-btn px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white transition-colors">Individual</button>
+      </div>
+      <!-- Dynamic dropdowns appear here based on role -->
+      <div id="role-filters" class="flex gap-2"></div>
+      <!-- RAG summary pills -->
+      <div id="rag-summary" class="flex gap-2 ml-auto"></div>
+    </div>
+
+    <!-- Three-Column Pillar Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6" id="pillars-grid">
+      <div class="skeleton h-96 rounded-xl bg-slate-900"></div>
+      <div class="skeleton h-96 rounded-xl bg-slate-900"></div>
+      <div class="skeleton h-96 rounded-xl bg-slate-900"></div>
+    </div>
+
+  </div>
+
+  <!-- Goal Detail Modal (hidden by default) -->
+  <div id="goal-modal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onclick="closeGoalModal()"></div>
+    <div class="modal-content absolute inset-4 md:inset-8 lg:inset-y-8 lg:inset-x-[15%] bg-slate-900 rounded-xl border border-slate-700/50 overflow-y-auto modal-scroll">
+      <div id="goal-modal-content" class="p-6">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script src="goals.js"></script>
+</body>
+</html>

@@ -4,21 +4,22 @@ A scorecard database prototype for AI-native organizational coordination at Astr
 
 ## What This Is
 
-An organizational coordination system where AI agents collaborate through a shared scorecard database. Three personas (oncology data scientist, translational scientist, clinical development lead) demonstrate how skills chain across teams to advance a CDK4/6 inhibitor from compound screening to clinical trial feasibility. Agents interact with the scorecard via MCP (Model Context Protocol) servers. Skills are defined as markdown files that any MCP-compatible agent can execute.
+An organizational coordination system where AI agents collaborate through a shared scorecard database. The demo uses **Vantage Biopharma**, a fictional large pharma company with 18 org units, 21 goals across 3 strategic pillars, 4 programs, and 6 skilled personas. Two skill chains demonstrate how insights flow across teams: **Chain A** (KOL Insights: Elena > Marcus > Sarah) and **Chain B** (AE Escalation: James > Amara > Richard). Agents interact with the scorecard via MCP (Model Context Protocol) servers. Skills are defined as markdown files that any MCP-compatible agent can execute.
 
 ## Architecture
 
 ```
 SKILL.md files          MCP Server (TypeScript)          Neon PostgreSQL
-(define persona       → (provides tools for agents    → (shared database: goals,
+(define persona       > (provides tools for agents    > (shared database: goals,
  capabilities)           to read/write the database)     progress, skills, outputs,
                                                          feedback)
 ```
 
 | Component | What It Does |
 |-----------|-------------|
-| `skills/*.../SKILL.md` | Markdown files defining what each persona can do — inputs, outputs, workflow steps |
+| `skills/*.../SKILL.md` | Markdown files defining what each persona can do -- inputs, outputs, workflow steps |
 | `scorecard-mcp/` | TypeScript MCP server exposing tools for agents to interact with the database |
+| `scorecard-api/` | Express.js REST API powering the dashboard UI (goals.html + demo.html) |
 | Neon PostgreSQL | Shared cloud database storing all goals, progress, alignments, skills, outputs, and feedback |
 | `.claude/mcp.json` | Configuration that auto-connects Claude Code to the MCP server |
 
@@ -40,13 +41,20 @@ cd az-intelligence-flow
 
 # Install dependencies
 cd scorecard-mcp && npm install && cd ..
+cd scorecard-api && npm install && cd ..
 
 # Set up environment
 cp .env.example .env
 # Edit .env and paste the shared DATABASE_URL
 
+# Seed the database (if starting fresh)
+psql $DATABASE_URL -f seeds/vantage-biopharma-seed.sql
+
 # Generate Prisma client
 cd scorecard-mcp && npx prisma db pull && npx prisma generate && cd ..
+
+# Start the API server (for the dashboard)
+cd scorecard-api && npm run dev
 ```
 
 ## Connect Your Agent
@@ -73,18 +81,21 @@ Add this stdio server configuration to your agent's MCP config:
 }
 ```
 
-The server runs via `tsx` directly — no build step required.
+The server runs via `tsx` directly -- no build step required.
 
 ## Available Skills
 
 | Skill | File | Persona | What It Does |
 |-------|------|---------|-------------|
-| Compound Efficacy Analysis | `skills/compound-analysis/SKILL.md` | Dr. Sarah Chen | Screens compound libraries, identifies lead candidates |
-| Biomarker Validation | `skills/biomarker-validation/SKILL.md` | Dr. James Rivera | Validates predictive biomarkers for patient selection |
-| Trial Feasibility Assessment | `skills/trial-feasibility/SKILL.md` | Dr. Priya Sharma | Assesses Phase 2 trial viability |
+| MSL Insight Reporter | `skills/msl-insight-reporter/SKILL.md` | Dr. Elena Vasquez | Captures and structures KOL interaction insights |
+| Med Affairs Aggregator | `skills/med-affairs-aggregator/SKILL.md` | Marcus Chen | Aggregates field insights into regional trend reports |
+| Commercial Strategist | `skills/commercial-strategist/SKILL.md` | Sarah Okonkwo | Translates medical insights into commercial launch strategies |
+| CRA Site Monitor | `skills/cra-site-monitor/SKILL.md` | Dr. James Park | Monitors clinical sites and flags adverse event signals |
+| Patient Safety Evaluator | `skills/patient-safety-evaluator/SKILL.md` | Dr. Amara Osei | Evaluates AE signals and produces safety assessments |
+| Medical Director Reviewer | `skills/medical-director-reviewer/SKILL.md` | Dr. Richard Stein | Reviews safety escalations and issues medical directives |
 | Scorecard Overview | `skills/scorecard-overview/SKILL.md` | Anyone | Queries the full project scorecard |
 
-To use a skill, tell your agent: "Read the skill at `skills/compound-analysis/SKILL.md` and follow the workflow." The agent reads the instructions and calls the MCP tools.
+To use a skill, tell your agent: "Read the skill at `skills/msl-insight-reporter/SKILL.md` and follow the workflow." The agent reads the instructions and calls the MCP tools.
 
 ## Available MCP Tools
 
@@ -123,16 +134,16 @@ Full schemas and implementation details are in `mcp-collaboration-spec.md`.
 The database has two sets of tables:
 
 **Scorecard tables** (defined in `schema.sql`):
-- `org_units` — organizational hierarchy (Enterprise > BU > Function > Department > Individual)
-- `goal_items` — goal hierarchy (Pillar > Category > Goal > Program)
-- `goal_alignments` — cross-org goal alignment relationships
-- `program_objectives` — quarterly objectives per program
-- `progress_updates` — versioned progress entries with RAG status
+- `org_units` -- organizational hierarchy (Enterprise > Business Unit > Function > Department > Individual)
+- `goal_items` -- goal hierarchy (Pillar > Category > Goal > Program)
+- `goal_alignments` -- cross-org goal alignment relationships
+- `program_objectives` -- quarterly objectives per program
+- `progress_updates` -- versioned progress entries with RAG status
 
 **Collaboration tables** (defined in `migrations/002-collaboration-tables.sql`):
-- `skills` — registered capabilities per person
-- `skill_outputs` — logged outputs from skill execution, linked to goals
-- `feedback_requests` — async feedback queue for cross-person review
+- `skills` -- registered capabilities per person
+- `skill_outputs` -- logged outputs from skill execution, linked to goals
+- `feedback_requests` -- async feedback queue for cross-person review
 
 ### Setting up a new database (if needed)
 
@@ -143,42 +154,64 @@ psql $DATABASE_URL -f schema.sql
 # Run the collaboration migration
 psql $DATABASE_URL -f migrations/002-collaboration-tables.sql
 
-# Seed the demo data
-npx tsx seed.ts
+# Seed the Vantage Biopharma demo data
+psql $DATABASE_URL -f seeds/vantage-biopharma-seed.sql
 ```
 
 For the shared prototype, the database is already deployed. You only need the `DATABASE_URL`.
 
 ## Demo Scenario
 
-The prototype demonstrates a 3-act collaboration on a novel CDK4/6 inhibitor for advanced breast cancer:
+The prototype demonstrates a **Vantage Biopharma** coordination scenario with two skill chains across Medical Affairs, Commercial, Clinical Development, and Patient Safety:
 
-1. **Act 1 — Compound Screening (Dr. Sarah Chen)**: Screens 2,847 compounds, identifies lead candidate AZD-4891, submits output to the scorecard, and requests James's review.
+**Chain A -- KOL Insights** (field insight to commercial strategy):
+1. **Dr. Elena Vasquez** (MSL Insight Reporter): Captures KOL interaction insights from the field
+2. **Marcus Chen** (Med Affairs Aggregator): Aggregates field insights into regional trend reports
+3. **Sarah Okonkwo** (Commercial Strategist): Translates insights into commercial launch positioning
 
-2. **Act 2 — Biomarker Validation (Dr. James Rivera)**: Reviews Sarah's compound candidates, validates predictive biomarkers for patient selection, submits output, and requests Priya's review.
-
-3. **Act 3 — Trial Feasibility (Dr. Priya Sharma)**: Reviews upstream compound and biomarker data, runs a Phase 2 trial feasibility assessment, and updates the scorecard with final results.
+**Chain B -- AE Escalation** (safety signal to medical directive):
+1. **Dr. James Park** (CRA Site Monitor): Monitors clinical sites and flags adverse event signals
+2. **Dr. Amara Osei** (Patient Safety Evaluator): Evaluates AE signals and produces safety assessments
+3. **Dr. Richard Stein** (Medical Director Reviewer): Reviews safety escalations and issues medical directives
 
 Each agent reads its SKILL.md, calls MCP tools to interact with the shared database, and hands off to the next persona via feedback requests.
+
+## Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| CEO Goal View | `goals.html` | Three-column pillar layout with role-based filtering -- the landing page |
+| Program Dashboard | `demo.html` | 6-panel dark-themed dashboard showing org tree, goal cascade, scorecard, skills, skill chain, timeline |
 
 ## Project Structure
 
 ```
 az-intelligence-flow/
-├── .claude/mcp.json              # MCP server configuration
-├── .env.example                  # Environment template
-├── schema.sql                    # Scorecard database schema
-├── migrations/                   # Database migrations
-│   └── 002-collaboration-tables.sql
-├── skills/                       # SKILL.md definitions
-│   ├── compound-analysis/
-│   ├── biomarker-validation/
-│   ├── trial-feasibility/
-│   └── scorecard-overview/
-├── scorecard-mcp/                # MCP server (TypeScript)
-├── seed.ts                       # Demo data seeder
-├── app-overview.md               # System overview document
-└── mcp-collaboration-spec.md     # MCP server build specification
++-- .claude/mcp.json              # MCP server configuration
++-- .env.example                  # Environment template
++-- schema.sql                    # Scorecard database schema
++-- migrations/                   # Database migrations
+|   +-- 002-collaboration-tables.sql
++-- seeds/
+|   +-- vantage-biopharma-seed.sql  # Vantage Biopharma demo data
++-- skills/                       # SKILL.md definitions (6 skills)
+|   +-- msl-insight-reporter/
+|   +-- med-affairs-aggregator/
+|   +-- commercial-strategist/
+|   +-- cra-site-monitor/
+|   +-- patient-safety-evaluator/
+|   +-- medical-director-reviewer/
+|   +-- scorecard-overview/
++-- scorecard-mcp/                # MCP server (TypeScript)
++-- scorecard-api/                # REST API server (Express.js + Prisma)
++-- goals.html + goals.js         # CEO Goal View page
++-- demo.html + demo.js           # Program Dashboard page
++-- app-overview.md               # System overview document
++-- mcp-collaboration-spec.md     # MCP server build specification
++-- DESIGN_SPEC.md                # Dashboard design specification
++-- DASHBOARD_SPEC.md             # Dashboard data specification
++-- CLAUDE.md                     # Project instructions
++-- README.md                     # This file
 ```
 
 ## Contributing
@@ -187,4 +220,4 @@ This is a prototype. To add a new persona or skill, create a new `SKILL.md` in t
 
 ## License
 
-Internal prototype — AstraZeneca
+Internal prototype -- AstraZeneca

@@ -1,8 +1,10 @@
-# Riddle Enterprises Dashboard -- Design Specification
+# Vantage Biopharma Dashboard -- Design Specification
 
 ## Overview
 
-A 6-panel dark-themed dashboard demonstrating the Scorecard + Skills system using the Riddle Enterprises demo data. The dashboard tells the story: an organization (Riddle Enterprises) has goals (Creative Intelligence pillar cascading down to the Riddlemethis program), two skilled individuals (The Riddler and The Sphinx) whose skills chain together, tracked by a scorecard with RAG status and a timeline of activity.
+A 6-panel dark-themed dashboard demonstrating the Scorecard + Skills system using the Vantage Biopharma demo data. The dashboard tells the story: a fictional large pharma organization (Vantage Biopharma) has goals (3 Pillars cascading down to 4 Programs), six skilled personas whose skills form two chains (Chain A: KOL Insights, Chain B: AE Escalation), tracked by a scorecard with RAG status and a timeline of activity.
+
+The landing page is the **CEO Goal View** (`goals.html`) -- a three-column pillar layout with role-based filtering. The **Program Dashboard** (`demo.html`) provides the 6-panel operational command-center view.
 
 The visual language extends the existing site's purple/indigo/amber palette into a fully dark environment -- shifting from the light-background presentation pages into an operational command-center aesthetic.
 
@@ -59,14 +61,18 @@ RAG badge markup pattern:
 </span>
 ```
 
-### Character Colors
+### Persona Colors
 
-| Character    | Primary              | Background              | Border                     | Icon BG                   |
-|--------------|----------------------|-------------------------|----------------------------|---------------------------|
-| The Riddler  | `text-green-400`     | `bg-green-500/10`       | `border-green-500/30`      | `bg-green-500/20`         |
-| The Sphinx   | `text-amber-400`     | `bg-amber-500/10`       | `border-amber-500/30`      | `bg-amber-500/20`         |
+| Persona              | Primary              | Background              | Border                     | Icon BG                   |
+|----------------------|----------------------|-------------------------|----------------------------|---------------------------|
+| Dr. Elena Vasquez    | `text-rose-400`      | `bg-rose-500/10`        | `border-rose-500/30`       | `bg-rose-500/20`          |
+| Marcus Chen          | `text-sky-400`       | `bg-sky-500/10`         | `border-sky-500/30`        | `bg-sky-500/20`           |
+| Sarah Okonkwo        | `text-amber-400`     | `bg-amber-500/10`       | `border-amber-500/30`      | `bg-amber-500/20`         |
+| Dr. James Park       | `text-green-400`     | `bg-green-500/10`       | `border-green-500/30`      | `bg-green-500/20`         |
+| Dr. Amara Osei       | `text-violet-400`    | `bg-violet-500/10`      | `border-violet-500/30`     | `bg-violet-500/20`        |
+| Dr. Richard Stein    | `text-orange-400`    | `bg-orange-500/10`      | `border-orange-500/30`     | `bg-orange-500/20`        |
 
-These character colors give each persona a distinct identity throughout the dashboard -- The Riddler is green (creation, freshness), The Sphinx is amber/gold (wisdom, depth).
+These persona colors give each individual a distinct identity throughout the dashboard.
 
 ---
 
@@ -197,124 +203,23 @@ These character colors give each persona a distinct identity throughout the dash
 
 ### 4.1 Org Tree Panel
 
-**Header:** Building icon + "Organization" + badge "4 units"
+**Header:** Building icon + "Organization" + badge "18 units"
 
-**Content:** Indented tree with vertical connector lines.
-
-```html
-<div class="space-y-1">
-  <!-- Enterprise level -->
-  <div class="flex items-center gap-2 py-1.5">
-    <span class="w-5 h-5 rounded bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-      <svg class="w-3 h-3 text-purple-400"><!-- building icon --></svg>
-    </span>
-    <span class="text-sm font-medium text-white">Riddle Enterprises</span>
-    <span class="text-xs text-slate-500 ml-auto">Enterprise</span>
-  </div>
-
-  <!-- Department level (indented) -->
-  <div class="ml-4 pl-4 border-l border-slate-700/50">
-    <div class="flex items-center gap-2 py-1.5">
-      <span class="w-5 h-5 rounded bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-        <svg class="w-3 h-3 text-indigo-400"><!-- folder icon --></svg>
-      </span>
-      <span class="text-sm font-medium text-slate-200">Riddle Workshop</span>
-      <span class="text-xs text-slate-500 ml-auto">Department</span>
-    </div>
-
-    <!-- Individual level (indented further) -->
-    <div class="ml-4 pl-4 border-l border-slate-700/50 space-y-1">
-      <!-- The Riddler -->
-      <div class="flex items-center gap-2 py-1.5">
-        <span class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-          <span class="text-[10px]">?</span>
-        </span>
-        <span class="text-sm text-green-400 font-medium">The Riddler</span>
-        <span class="text-xs text-slate-500 ml-auto">Individual</span>
-      </div>
-      <!-- The Sphinx -->
-      <div class="flex items-center gap-2 py-1.5">
-        <span class="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-          <span class="text-[10px]">&#x25B2;</span>
-        </span>
-        <span class="text-sm text-amber-400 font-medium">The Sphinx</span>
-        <span class="text-xs text-slate-500 ml-auto">Individual</span>
-      </div>
-    </div>
-  </div>
-</div>
-```
+**Content:** Indented tree with vertical connector lines. Shows the full Vantage Biopharma hierarchy: Enterprise > Business Units (Oncology, R&D) > Functions (Medical Affairs, Commercial, Clinical Development) > Departments > Individuals.
 
 Key design decisions:
 - Vertical `border-l` lines show hierarchy
 - Each level indents by `ml-4 pl-4`
-- Icons are color-coded: purple for enterprise, indigo for department, character colors for individuals
+- Icons are color-coded: purple for enterprise, indigo for BU/function, persona colors for individuals
 - Level label is right-aligned in muted text
 
 ---
 
 ### 4.2 Goal Cascade Panel
 
-**Header:** Target icon + "Goal Cascade" + badge "4 levels"
+**Header:** Target icon + "Goal Cascade" + badge "21 goals"
 
-**Content:** Vertical flow from Pillar down to Program, with alignment arrows and strength labels between each level.
-
-```html
-<div class="space-y-0">
-
-  <!-- Pillar -->
-  <div class="bg-purple-500/5 border border-purple-500/20 rounded-lg px-4 py-3">
-    <p class="text-[10px] uppercase tracking-wider text-purple-400 font-semibold mb-1">Pillar</p>
-    <p class="text-sm font-medium text-white">Creative Intelligence</p>
-  </div>
-
-  <!-- Alignment connector -->
-  <div class="flex items-center justify-center py-1.5">
-    <div class="flex flex-col items-center">
-      <div class="w-px h-3 bg-slate-600"></div>
-      <svg class="w-3 h-3 text-slate-500"><path d="M6 0L12 8H0z" fill="currentColor"/></svg>
-      <span class="text-[9px] text-slate-500 mt-0.5">primary 0.80</span>
-    </div>
-  </div>
-
-  <!-- Category -->
-  <div class="bg-indigo-500/5 border border-indigo-500/20 rounded-lg px-4 py-3">
-    <p class="text-[10px] uppercase tracking-wider text-indigo-400 font-semibold mb-1">Category</p>
-    <p class="text-sm font-medium text-white">Riddle Mastery</p>
-  </div>
-
-  <!-- Alignment connector -->
-  <div class="flex items-center justify-center py-1.5">
-    <div class="flex flex-col items-center">
-      <div class="w-px h-3 bg-slate-600"></div>
-      <svg class="w-3 h-3 text-slate-500"><path d="M6 0L12 8H0z" fill="currentColor"/></svg>
-      <span class="text-[9px] text-slate-500 mt-0.5">primary 1.00</span>
-    </div>
-  </div>
-
-  <!-- Goal -->
-  <div class="bg-amber-500/5 border border-amber-500/20 rounded-lg px-4 py-3">
-    <p class="text-[10px] uppercase tracking-wider text-amber-400 font-semibold mb-1">Goal</p>
-    <p class="text-sm font-medium text-white">Generate 10 quality riddles by end of Q1 2026</p>
-  </div>
-
-  <!-- Alignment connector -->
-  <div class="flex items-center justify-center py-1.5">
-    <div class="flex flex-col items-center">
-      <div class="w-px h-3 bg-slate-600"></div>
-      <svg class="w-3 h-3 text-slate-500"><path d="M6 0L12 8H0z" fill="currentColor"/></svg>
-      <span class="text-[9px] text-slate-500 mt-0.5">primary 1.00</span>
-    </div>
-  </div>
-
-  <!-- Program (highlighted) -->
-  <div class="bg-emerald-500/5 border border-emerald-500/30 rounded-lg px-4 py-3 ring-1 ring-emerald-500/10">
-    <p class="text-[10px] uppercase tracking-wider text-emerald-400 font-semibold mb-1">Program</p>
-    <p class="text-sm font-medium text-white">Riddlemethis</p>
-    <p class="text-xs text-slate-400 mt-1">Q1 2026 -- 10 riddles target</p>
-  </div>
-</div>
-```
+**Content:** Vertical flow from Pillar down to Program, with alignment arrows and strength labels between each level. Shows the selected pillar's cascade from Pillar > Category > Goal > Program.
 
 Key design decisions:
 - Each goal level gets a unique subtle color tint
@@ -329,227 +234,48 @@ Key design decisions:
 
 **Header:** Chart icon + "Scorecard" + RAG badge for overall status
 
-**Content:** Table-like format showing program objectives with progress bars and RAG status.
-
-```html
-<div class="space-y-4">
-
-  <!-- Program header -->
-  <div class="flex items-center justify-between">
-    <div>
-      <p class="text-sm font-medium text-white">Riddlemethis</p>
-      <p class="text-xs text-slate-400">Q1 2026 -- 10 riddles target</p>
-    </div>
-    <!-- RAG Badge -->
-    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/15 text-slate-400">
-      <span class="w-1.5 h-1.5 rounded-full bg-slate-400 rag-pulse"></span>
-      Not Started
-    </span>
-  </div>
-
-  <!-- Progress bar -->
-  <div>
-    <div class="flex items-center justify-between mb-1.5">
-      <span class="text-xs text-slate-400">Progress</span>
-      <span class="text-xs font-medium text-white">0 / 10</span>
-    </div>
-    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-      <div class="h-full bg-purple-500 rounded-full transition-all duration-1000 ease-out progress-fill"
-           style="width: 0%"></div>
-    </div>
-  </div>
-
-  <!-- Objective details -->
-  <div class="bg-slate-800/50 rounded-lg p-3 space-y-2">
-    <div class="flex items-center justify-between">
-      <span class="text-xs text-slate-300">Q1 Objective</span>
-      <span class="text-xs text-slate-500">Jan -- Mar 2026</span>
-    </div>
-    <p class="text-xs text-slate-400">Generate 10 riddles using the riddle-maker and riddle-deepener skill pipeline</p>
-    <div class="flex items-center gap-4 pt-1">
-      <div class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-green-400/60"></span>
-        <span class="text-[10px] text-slate-400">Riddler: 0 created</span>
-      </div>
-      <div class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-amber-400/60"></span>
-        <span class="text-[10px] text-slate-400">Sphinx: 0 deepened</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Latest update -->
-  <div class="border-t border-slate-800 pt-3">
-    <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-1.5">Latest Update (v1)</p>
-    <p class="text-xs text-slate-400 leading-relaxed">
-      Program initiated. Pipeline established. Ready to begin.
-    </p>
-  </div>
-</div>
-```
+**Content:** Table-like format showing program objectives with progress bars and RAG status for the selected program (AE-SENTINEL, VBP-142 Phase II Readiness, KOL-INSIGHTS, or LAUNCH-READY).
 
 Key design decisions:
 - Progress bar uses `bg-slate-800` track with `bg-purple-500` fill
 - RAG badge is prominent in the header area
 - Nested objective details in a slightly darker container
-- Character-specific metrics use their persona colors
+- Persona-specific metrics use their persona colors
 - Version-numbered update section at the bottom
 
 ---
 
 ### 4.4 Skills Panel
 
-**Header:** Code icon + "Skills Registry" + badge "2 skills"
+**Header:** Code icon + "Skills Registry" + badge "6 skills"
 
-**Content:** Two side-by-side skill cards, one for each persona.
-
-```html
-<div class="grid grid-cols-2 gap-3">
-
-  <!-- The Riddler's Skill -->
-  <div class="bg-green-500/5 border border-green-500/20 rounded-lg p-3.5">
-    <div class="flex items-center gap-2 mb-2.5">
-      <span class="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-[10px] text-green-400 font-bold">?</span>
-      <div>
-        <p class="text-xs font-semibold text-green-400">The Riddler</p>
-        <p class="text-[10px] text-slate-500">Creative Lead</p>
-      </div>
-    </div>
-    <p class="text-sm font-medium text-white mb-2">Riddle Maker</p>
-    <p class="text-xs text-slate-400 mb-3">Creates semi-basic riddles from prompts with answer and difficulty rating</p>
-
-    <!-- I/O spec -->
-    <div class="space-y-1.5">
-      <div>
-        <p class="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Input</p>
-        <code class="text-[10px] text-green-300/80 bg-slate-800/80 px-1.5 py-0.5 rounded">{ topic }</code>
-      </div>
-      <div>
-        <p class="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Output</p>
-        <code class="text-[10px] text-green-300/80 bg-slate-800/80 px-1.5 py-0.5 rounded">{ riddle, answer, difficulty }</code>
-      </div>
-    </div>
-
-    <div class="mt-3 pt-2 border-t border-green-500/10">
-      <span class="text-[10px] text-slate-500">Type: </span>
-      <span class="text-[10px] text-green-400">personal</span>
-    </div>
-  </div>
-
-  <!-- The Sphinx's Skill -->
-  <div class="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3.5">
-    <div class="flex items-center gap-2 mb-2.5">
-      <span class="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-[10px] text-amber-400 font-bold">&#x25B2;</span>
-      <div>
-        <p class="text-xs font-semibold text-amber-400">The Sphinx</p>
-        <p class="text-[10px] text-slate-500">Sr. Enigmatologist</p>
-      </div>
-    </div>
-    <p class="text-sm font-medium text-white mb-2">Riddle Deepener</p>
-    <p class="text-xs text-slate-400 mb-3">Transforms basic riddles into three-layer deep enigmas with nested clues</p>
-
-    <!-- I/O spec -->
-    <div class="space-y-1.5">
-      <div>
-        <p class="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Input</p>
-        <code class="text-[10px] text-amber-300/80 bg-slate-800/80 px-1.5 py-0.5 rounded">{ riddle, answer }</code>
-      </div>
-      <div>
-        <p class="text-[9px] uppercase tracking-wider text-slate-500 mb-0.5">Output</p>
-        <code class="text-[10px] text-amber-300/80 bg-slate-800/80 px-1.5 py-0.5 rounded">{ layers[3], final_answer }</code>
-      </div>
-    </div>
-
-    <div class="mt-3 pt-2 border-t border-amber-500/10">
-      <span class="text-[10px] text-slate-500">Type: </span>
-      <span class="text-[10px] text-amber-400">personal</span>
-    </div>
-  </div>
-</div>
-```
+**Content:** 3x2 grid of skill cards, one for each persona. Each card shows the persona name with their color, skill name, description, and I/O spec.
 
 Key design decisions:
-- Side-by-side layout gives equal visual weight
-- Character color coding extends to card tint, border, text accents
+- 3x2 grid layout gives all 6 skills equal visual weight
+- Persona color coding extends to card tint, border, text accents
 - I/O specs displayed in monospace code blocks
-- Persona avatar uses symbolic characters (? for Riddler, triangle for Sphinx)
+- Persona avatar uses initials with persona color background
 - Compact but information-dense
 
 ---
 
 ### 4.5 Skill Chain Panel
 
-**Header:** Arrow-right icon + "Skill Chain" + badge "2-step pipeline"
+**Header:** Arrow-right icon + "Skill Chain" + toggle "Chain A | Chain B"
 
-**Content:** Horizontal pipeline showing data flowing from Riddler's skill to Sphinx's skill, with a data preview in between.
+**Content:** Horizontal pipeline showing data flowing through a 3-step chain. A toggle switches between:
 
-```html
-<div class="flex items-center gap-0">
-
-  <!-- Step 1: Riddler node -->
-  <div class="flex-1 min-w-0">
-    <div class="bg-green-500/5 border border-green-500/20 rounded-lg p-3 text-center">
-      <span class="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-1.5 text-xs text-green-400 font-bold">?</span>
-      <p class="text-xs font-semibold text-green-400 truncate">Riddle Maker</p>
-      <p class="text-[10px] text-slate-500">The Riddler</p>
-    </div>
-  </div>
-
-  <!-- Arrow connector with data preview -->
-  <div class="flex flex-col items-center px-2 flex-shrink-0">
-    <!-- Animated arrow line -->
-    <div class="relative w-16 h-px">
-      <div class="absolute inset-0 bg-slate-700"></div>
-      <div class="absolute inset-0 chain-flow-line"></div>
-      <!-- Arrow head -->
-      <div class="absolute right-0 top-1/2 -translate-y-1/2 w-0 h-0
-                  border-l-[6px] border-l-purple-400
-                  border-y-[4px] border-y-transparent"></div>
-    </div>
-    <!-- Data label -->
-    <div class="mt-1.5 bg-slate-800/80 rounded px-2 py-1 max-w-[120px]">
-      <p class="text-[8px] text-slate-500 text-center">riddle + answer</p>
-    </div>
-  </div>
-
-  <!-- Step 2: Sphinx node -->
-  <div class="flex-1 min-w-0">
-    <div class="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 text-center">
-      <span class="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center mx-auto mb-1.5 text-xs text-amber-400 font-bold">&#x25B2;</span>
-      <p class="text-xs font-semibold text-amber-400 truncate">Riddle Deepener</p>
-      <p class="text-[10px] text-slate-500">The Sphinx</p>
-    </div>
-  </div>
-</div>
-
-<!-- Pipeline output preview -->
-<div class="mt-4 bg-slate-800/30 border border-slate-700/30 rounded-lg p-3">
-  <p class="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Pipeline Output</p>
-  <div class="flex items-center gap-3">
-    <div class="flex items-center gap-1">
-      <span class="w-1.5 h-1.5 rounded-full bg-green-400/60"></span>
-      <span class="text-[10px] text-slate-400">Basic riddle</span>
-    </div>
-    <span class="text-slate-600">-></span>
-    <div class="flex items-center gap-1">
-      <span class="w-1.5 h-1.5 rounded-full bg-amber-400/60"></span>
-      <span class="text-[10px] text-slate-400">3-layer enigma</span>
-    </div>
-    <span class="text-slate-600">-></span>
-    <div class="flex items-center gap-1">
-      <span class="w-1.5 h-1.5 rounded-full bg-purple-400/60"></span>
-      <span class="text-[10px] text-slate-400">Scorecard</span>
-    </div>
-  </div>
-</div>
-```
+- **Chain A (KOL Insights):** Elena (MSL Insight Reporter) > Marcus (Med Affairs Aggregator) > Sarah (Commercial Strategist)
+- **Chain B (AE Escalation):** James (CRA Site Monitor) > Amara (Patient Safety Evaluator) > Richard (Medical Director Reviewer)
 
 Key design decisions:
 - Horizontal layout shows clear left-to-right flow
-- Animated connecting line between nodes (see Animation Specs)
-- Data label shows what is passed between skills
+- Animated connecting lines between nodes (see Animation Specs)
+- Data labels show what is passed between skills
 - Pipeline output summary shows the full flow including scorecard destination
-- Character colors maintained on each node
+- Persona colors maintained on each node
+- Toggle button switches between Chain A and Chain B
 
 ---
 
@@ -559,64 +285,48 @@ Key design decisions:
 
 **Content:** Vertical timeline with timestamps, persona avatars, and output previews.
 
-```html
-<div class="relative">
-  <!-- Vertical timeline line -->
-  <div class="absolute left-3 top-0 bottom-0 w-px bg-slate-800"></div>
-
-  <div class="space-y-4">
-
-    <!-- Timeline entry -->
-    <div class="relative flex gap-3 pl-0">
-      <!-- Avatar dot on the line -->
-      <div class="relative z-10 w-6 h-6 rounded-full bg-slate-900 border-2 border-slate-700 flex items-center justify-center flex-shrink-0">
-        <span class="w-2 h-2 rounded-full bg-purple-400"></span>
-      </div>
-      <!-- Content -->
-      <div class="flex-1 min-w-0 pb-1">
-        <div class="flex items-center gap-2 mb-0.5">
-          <span class="text-xs font-medium text-slate-200">Program Initiated</span>
-          <span class="text-[10px] text-slate-500">v1</span>
-        </div>
-        <p class="text-[10px] text-slate-500 mb-1.5">Mike Pica</p>
-        <div class="bg-slate-800/50 rounded px-2.5 py-1.5">
-          <p class="text-xs text-slate-400 line-clamp-2">Pipeline established. Riddle Maker and Riddle Deepener skills registered. 0 of 10 target riddles completed.</p>
-        </div>
-        <p class="text-[10px] text-slate-600 mt-1">Jan 2026</p>
-      </div>
-    </div>
-
-    <!-- Placeholder for future entries -->
-    <div class="relative flex gap-3 pl-0">
-      <div class="relative z-10 w-6 h-6 rounded-full bg-slate-900 border-2 border-slate-800 flex items-center justify-center flex-shrink-0">
-        <span class="w-2 h-2 rounded-full bg-slate-600"></span>
-      </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-xs text-slate-600 italic">Awaiting first riddle creation...</p>
-      </div>
-    </div>
-  </div>
-</div>
-```
-
-When activity data is available (riddles created, deepened), entries follow this pattern:
-
-- **Riddler entries:** Green avatar dot, green persona name, preview of riddle text
-- **Sphinx entries:** Amber avatar dot, amber persona name, preview of layer summary
+When activity data is available, entries follow this pattern with persona-colored avatar dots:
+- **Elena entries:** Rose avatar dot
+- **Marcus entries:** Sky avatar dot
+- **Sarah entries:** Amber avatar dot
+- **James entries:** Green avatar dot
+- **Amara entries:** Violet avatar dot
+- **Richard entries:** Orange avatar dot
 - **System entries:** Purple avatar dot, neutral text
 
 Key design decisions:
 - Vertical left-aligned timeline with connector line
-- Avatar dots on the line with color coding by character
+- Avatar dots on the line with color coding by persona
 - Compact content blocks with `line-clamp` for previews
 - Timestamps in muted slate
 - Waiting/placeholder state for upcoming activity
 
 ---
 
-## 5. Animation Specs
+## 5. CEO Goal View Page (`goals.html`)
 
-### 5.1 Panel Entrance
+A separate landing page that provides the executive-level view of all organizational goals.
+
+### Layout
+- Three-column layout, one column per strategic pillar:
+  - **Advance Pipeline** (left)
+  - **Improve Patient Outcomes** (center)
+  - **Develop Our People** (right)
+- Each column cascades from Pillar > Categories > Goals > Programs
+- Role-based filter dropdown at top to view goals by persona or department
+- Click a program to navigate to the Program Dashboard (`demo.html`) with that program pre-selected
+
+### Design
+- Same dark theme as the dashboard
+- Pillar headers use distinct accent colors
+- Goal cards show owner, status, and RAG indicator
+- Programs are clickable links to the dashboard view
+
+---
+
+## 6. Animation Specs
+
+### 6.1 Panel Entrance
 
 Reuse the existing `reveal` pattern from the site, adapted for the dashboard.
 
@@ -642,7 +352,7 @@ Reuse the existing `reveal` pattern from the site, adapted for the dashboard.
 
 Uses the same `IntersectionObserver` pattern as the existing pages. Each panel fades in and slides up with a slight stagger so they cascade across the grid.
 
-### 5.2 Skill Chain Data Flow
+### 6.2 Skill Chain Data Flow
 
 Animated dashes moving along the connector line between skill nodes.
 
@@ -666,9 +376,9 @@ Animated dashes moving along the connector line between skill nodes.
 }
 ```
 
-This creates purple dashed segments that scroll right, simulating data moving from Riddler to Sphinx.
+This creates purple dashed segments that scroll right, simulating data moving through the skill chain.
 
-### 5.3 Progress Bar Fill
+### 6.3 Progress Bar Fill
 
 Animated width expansion when data loads.
 
@@ -681,7 +391,7 @@ Animated width expansion when data loads.
 
 Set the actual width via JS/inline style after the element enters the viewport. The `cubic-bezier` easing gives a satisfying deceleration.
 
-### 5.4 RAG Status Glow/Pulse
+### 6.4 RAG Status Glow/Pulse
 
 A subtle pulse on the RAG badge dot to draw attention.
 
@@ -698,7 +408,7 @@ A subtle pulse on the RAG badge dot to draw attention.
 
 Only applied to the small colored dot within the RAG badge, not the entire badge. Keeps it subtle.
 
-### 5.5 Timeline Entry Reveal
+### 6.5 Timeline Entry Reveal
 
 New timeline entries fade and slide from the left.
 
@@ -719,7 +429,7 @@ New timeline entries fade and slide from the left.
 }
 ```
 
-### 5.6 Hover Glow on Panels
+### 6.6 Hover Glow on Panels
 
 Subtle border brightening on hover.
 
@@ -735,7 +445,7 @@ Subtle border brightening on hover.
 
 ---
 
-## 6. Typography
+## 7. Typography
 
 ### Font Stack
 
@@ -758,8 +468,7 @@ Same as existing site. Inter is already loaded via Google Fonts.
 | Small body              | `text-xs text-slate-400`                             | 12px   | 400     |
 | Micro text              | `text-[10px] text-slate-500`                         | 10px   | 400     |
 | Data/code               | `font-mono text-[10px]`                              | 10px   | 400     |
-| Persona name (Riddler)  | `text-xs font-semibold text-green-400`               | 12px   | 600     |
-| Persona name (Sphinx)   | `text-xs font-semibold text-amber-400`               | 12px   | 600     |
+| Persona name            | `text-xs font-semibold` + persona color class        | 12px   | 600     |
 | RAG badge text          | `text-xs font-medium`                                | 12px   | 500     |
 
 ### Code/Data Display
@@ -774,7 +483,7 @@ Uses system monospace stack. Small size keeps the data dense but legible. Purple
 
 ---
 
-## 7. Dashboard Header
+## 8. Dashboard Header
 
 Above the 6-panel grid, a compact header provides context.
 
@@ -783,18 +492,18 @@ Above the 6-panel grid, a compact header provides context.
   <div class="flex items-center justify-between">
     <div>
       <div class="flex items-center gap-3 mb-1">
-        <h1 class="text-2xl md:text-3xl font-bold text-white">Riddle Enterprises</h1>
+        <h1 class="text-2xl md:text-3xl font-bold text-white">Vantage Biopharma</h1>
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/15 text-slate-400">
           <span class="w-1.5 h-1.5 rounded-full bg-slate-400 rag-pulse"></span>
-          Not Started
+          Program Dashboard
         </span>
       </div>
       <p class="text-sm text-slate-400 font-light">
-        Scorecard Dashboard -- Riddlemethis Program -- Q1 2026
+        Scorecard Dashboard -- 4 Programs -- 6 Skills -- 2 Chains
       </p>
     </div>
-    <a href="index.html" class="text-xs text-purple-400 hover:text-purple-300 transition-colors">
-      Back to Overview
+    <a href="goals.html" class="text-xs text-purple-400 hover:text-purple-300 transition-colors">
+      Back to CEO Goal View
     </a>
   </div>
 </header>
@@ -802,21 +511,21 @@ Above the 6-panel grid, a compact header provides context.
 
 ---
 
-## 8. Full Page Structure Summary
+## 9. Full Page Structure Summary
 
 ```
 bg-slate-950 (page)
   px-4/6/8, py-6/8
-    header (title + RAG badge + back link)
+    header (title + badge + back link to goals.html)
     grid 1/2/3 cols, gap-4/5/6
-      [1] Org Tree panel          -- purple icon
-      [2] Goal Cascade panel      -- indigo icon
+      [1] Org Tree panel          -- purple icon, 18 units
+      [2] Goal Cascade panel      -- indigo icon, 21 goals
       [3] Scorecard panel         -- amber icon
-      [4] Skills Registry panel   -- green icon
-      [5] Skill Chain panel       -- purple icon
+      [4] Skills Registry panel   -- green icon, 6 skills (3x2 grid)
+      [5] Skill Chain panel       -- purple icon, Chain A/B toggle
       [6] Activity Timeline panel -- slate icon
 ```
 
-All panels share the same card component structure. Content is panel-specific as detailed in Section 4. Animations load progressively as detailed in Section 5. Typography follows the scale in Section 6.
+All panels share the same card component structure. Content is panel-specific as detailed in Section 4. Animations load progressively as detailed in Section 6. Typography follows the scale in Section 7.
 
 The result is a dark, data-rich, premium dashboard that visually matches the existing site's design language while creating an operational command-center feel appropriate for monitoring scorecards and skill execution.
