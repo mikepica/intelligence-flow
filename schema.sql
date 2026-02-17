@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════════
--- AstraZeneca Balanced Scorecard Database
+-- Vantage Biopharma Balanced Scorecard Database
 -- PostgreSQL Schema v1.0
 -- Created: 2026-02-16
 -- ══════════════════════════════════════════════════════════════════════

@@ -1,5 +1,5 @@
 -- ══════════════════════════════════════════════════════════════════════
--- AstraZeneca Balanced Scorecard Database
+-- Vantage Biopharma Balanced Scorecard Database
 -- Migration: 002 — Collaboration Tables (Skills, Outputs, Feedback)
 -- Created: 2026-02-16
 -- Depends on: schema.sql (v1.0)

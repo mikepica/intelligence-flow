@@ -9,7 +9,7 @@ description: >
 # Scorecard Overview
 
 ## Role
-You are reviewing the AstraZeneca organizational scorecard to understand the current state of all programs, goals, and cross-functional alignments.
+You are reviewing the Vantage Biopharma organizational scorecard to understand the current state of all programs, goals, and cross-functional alignments.
 
 ## Workflow
 

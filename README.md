@@ -1,6 +1,6 @@
 # AZ Intelligence Flow
 
-A scorecard database prototype for AI-native organizational coordination at AstraZeneca.
+A scorecard database prototype for AI-native organizational coordination at Vantage Biopharma.
 
 ## What This Is
 
@@ -220,4 +220,4 @@ This is a prototype. To add a new persona or skill, create a new `SKILL.md` in t
 
 ## License
 
-Internal prototype -- AstraZeneca
+Internal prototype -- Vantage Biopharma

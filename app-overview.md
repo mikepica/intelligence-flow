@@ -2,11 +2,11 @@
 
 ## What It Is
 
-AZ Intelligence Flow is an organizational coordination system designed for AstraZeneca that demonstrates how a **single shared database** can serve as the backbone for AI-native enterprise collaboration. It connects organizational goals, individual skills, and AI agents into a unified coordination layer where everything feeds back in.
+AZ Intelligence Flow is an organizational coordination system designed for Vantage Biopharma that demonstrates how a **single shared database** can serve as the backbone for AI-native enterprise collaboration. It connects organizational goals, individual skills, and AI agents into a unified coordination layer where everything feeds back in.
 
 ## The Problem It Solves
 
-Large pharmaceutical organizations like AstraZeneca operate across dozens of teams, therapeutic areas, and functions. Today:
+Large pharmaceutical organizations like Vantage Biopharma operate across dozens of teams, therapeutic areas, and functions. Today:
 
 - **Goals live in silos** -- each team tracks objectives in their own tools (spreadsheets, Jira, SharePoint). No single source of truth connects R&D targets to clinical development milestones to commercial readiness.
 - **Collaboration is manual** -- when a field MSL captures a critical KOL insight, getting that insight to the commercial strategy team requires emails, meetings, and weeks of lag. The handoff is invisible to the organization.

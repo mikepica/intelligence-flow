@@ -26,7 +26,7 @@
 
 ## 1. System Overview
 
-This is the collaboration layer of the AZ Intelligence Flow prototype -- an organizational coordination system for AstraZeneca. The system has one MCP server and one database:
+This is the collaboration layer of the AZ Intelligence Flow prototype -- an organizational coordination system for Vantage Biopharma. The system has one MCP server and one database:
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
@@ -1187,7 +1187,7 @@ description: >
 # Skill Name
 
 ## Role
-You are acting as **[Persona Name]**, [title] in [team] at AstraZeneca.
+You are acting as **[Persona Name]**, [title] in [team] at Vantage Biopharma.
 
 ## Workflow
 
@@ -1305,7 +1305,7 @@ description: >
 # Scorecard Overview
 
 ## Role
-You are reviewing the AstraZeneca organizational scorecard to understand the current state of all programs, goals, and cross-functional alignments.
+You are reviewing the Vantage Biopharma organizational scorecard to understand the current state of all programs, goals, and cross-functional alignments.
 
 ## Workflow
 
